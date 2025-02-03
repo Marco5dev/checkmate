@@ -50,12 +50,16 @@ const PasswordModal = ({ isOpen, onClose, password_changes }) => {
 
   const handlePasswordChange = (e, type) => {
     const value = e.target.value;
-    if (type === 'new') {
+    if (type === "new") {
       setStrength(evaluatePasswordStrength(value));
     }
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [type === 'old' ? 'oldPassword' : type === 'new' ? 'newPassword' : 'confirmPassword']: value
+      [type === "old"
+        ? "oldPassword"
+        : type === "new"
+        ? "newPassword"
+        : "confirmPassword"]: value,
     }));
   };
 
@@ -81,14 +85,16 @@ const PasswordModal = ({ isOpen, onClose, password_changes }) => {
         body: JSON.stringify({
           oldPassword: password_changes > 0 ? formData.oldPassword : undefined,
           newPassword: formData.newPassword,
-          isInitialSet: password_changes === 0
+          isInitialSet: password_changes === 0,
         }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
-      toast.success(password_changes > 0 ? "Password updated" : "Password set successfully");
+      toast.success(
+        password_changes > 0 ? "Password updated" : "Password set successfully"
+      );
       onClose();
     } catch (error) {
       toast.error(error.message);
@@ -101,25 +107,45 @@ const PasswordModal = ({ isOpen, onClose, password_changes }) => {
     <div className="form-control relative">
       <label className="label">
         <span className="label-text">{label}</span>
-        {type === 'new' && (
-          <span className={`label-text-alt ${
-            strength === "Weak" ? "text-error" :
-            strength === "Medium" ? "text-warning" :
-            strength === "Strong" ? "text-success" : ""
-          }`}>
+        {type === "new" && (
+          <span
+            className={`label-text-alt ${
+              strength === "Weak"
+                ? "text-error"
+                : strength === "Medium"
+                ? "text-warning"
+                : strength === "Strong"
+                ? "text-success"
+                : ""
+            }`}
+          >
             {strength || "No password"}
           </span>
         )}
       </label>
       <input
         type={showPassword[type] ? "text" : "password"}
-        value={formData[type === 'old' ? 'oldPassword' : type === 'new' ? 'newPassword' : 'confirmPassword']}
+        value={
+          formData[
+            type === "old"
+              ? "oldPassword"
+              : type === "new"
+              ? "newPassword"
+              : "confirmPassword"
+          ]
+        }
         onChange={(e) => handlePasswordChange(e, type)}
         className={`input input-bordered pr-10 ${
-          type === 'new' && strength && `input-${
-            strength === "Weak" ? "error" :
-            strength === "Medium" ? "warning" :
-            strength === "Strong" ? "success" : ""
+          type === "new" &&
+          strength &&
+          `input-${
+            strength === "Weak"
+              ? "error"
+              : strength === "Medium"
+              ? "warning"
+              : strength === "Strong"
+              ? "success"
+              : ""
           }`
         }`}
         required={isRequired}
@@ -127,12 +153,14 @@ const PasswordModal = ({ isOpen, onClose, password_changes }) => {
       />
       <button
         type="button"
-        onClick={() => setShowPassword({ ...showPassword, [type]: !showPassword[type] })}
-        className="absolute right-3 top-[43px]"
+        onClick={() =>
+          setShowPassword({ ...showPassword, [type]: !showPassword[type] })
+        }
+        className="absolute right-3 top-[50px]"
       >
         <FontAwesomeIcon
           icon={showPassword[type] ? faEyeSlash : faEye}
-          className="text-gray-500"
+          className="text-gray-500 w-5 h-5"
         />
       </button>
     </div>
@@ -147,9 +175,10 @@ const PasswordModal = ({ isOpen, onClose, password_changes }) => {
           {password_changes > 0 ? "Change Password" : "Set Password"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {password_changes > 0 && renderPasswordField('old', 'Current Password')}
-          {renderPasswordField('new', 'New Password')}
-          {renderPasswordField('confirm', 'Confirm New Password')}
+          {password_changes > 0 &&
+            renderPasswordField("old", "Current Password")}
+          {renderPasswordField("new", "New Password")}
+          {renderPasswordField("confirm", "Confirm New Password")}
 
           <div className="flex justify-end gap-2 mt-6">
             <button

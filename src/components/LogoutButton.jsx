@@ -3,13 +3,10 @@
 import { signOut } from "next-auth/react";
 import axios from "axios";
 
-const LogoutButton = ({ className, children }) => {
+export default function LogoutButton({ className, children }) {
   const handleLogout = async () => {
     try {
-      // Call the logout API route
       await axios.get("/api/auth/logout");
-
-      // Then use NextAuth signOut
       await signOut({
         redirect: true,
         callbackUrl: "/login",
@@ -20,10 +17,8 @@ const LogoutButton = ({ className, children }) => {
   };
 
   return (
-    <button onClick={handleLogout} className={`btn btn-error ${className}`}>
+    <button onClick={handleLogout} className={className || "btn btn-error"}>
       {children || "Logout"}
     </button>
   );
-};
-
-export default LogoutButton;
+}
