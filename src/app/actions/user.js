@@ -1,7 +1,7 @@
 'use server'
 
 import { DBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import User from "@/models/User";
 
 export async function getUserByEmail(email) {
   await DBConnect();

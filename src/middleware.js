@@ -1,32 +1,35 @@
 import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
 export default withAuth(
-  function middleware(req) {
+  async function middleware(req) {
+    const token = await getToken({ req });
+    
+    // Add connecting flag to session if this is a connection attempt
+    if (req.nextUrl.pathname.startsWith('/api/auth/callback/github') && token) {
+      req.nextauth.token = {
+        ...token,
+        connecting: true
+      };
+    }
+
     // Modify response headers if needed
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ req, token }) => {
-        // If there's no token, user is not logged in
-        if (!token) {
-          return false;
-        }
-        return true;
-      },
+      authorized: ({ token }) => !!token,
     },
   }
 );
 
 export const config = {
   matcher: [
-    // Add routes that require authentication
     "/",
     "/dashboard/:path*",
     "/profile/:path*",
-    // Add more protected routes as needed
-    // Exclude auth routes
+    "/api/auth/callback/github",
     "/((?!api|login|register|_next/static|_next/image|favicon.ico).*)",
   ],
 };

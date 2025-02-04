@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import User from "@/model/User";
+import User from "@/models/User";
 import { DBConnect } from "@/utils/mongodb";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/utils/emailService";
@@ -41,7 +41,7 @@ export async function POST(request) {
       username: username.toLowerCase(),
       password: hashedPassword,
       password_changes: 1,
-      primaryProvider: "credentials"
+      provider: "credentials"
     });
 
     // Generate and set verification token

@@ -3,7 +3,8 @@ import GithubProvider from "next-auth/providers/github";
 import { DBConnect } from "@/utils/mongodb";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import User from "@/model/User"; // Import the User model directly
+import User from "@/models/User";
+import { getServerSession } from "next-auth"; 
 
 export const authOptions = {
   providers: [
@@ -17,9 +18,9 @@ export const authOptions = {
       async authorize(credentials) {
         await DBConnect();
         try {
-          // Add .select('+password') to include the password field
-          const user = await User.findOne({ email: credentials.email })
-            .select('+password');
+          const user = await User.findOne({ email: credentials.email }).select(
+            "+password"
+          );
 
           if (!user) {
             throw new Error("No user found with the email");
@@ -45,22 +46,65 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn(params) {
+      const { user, account, profile } = params;
+      
       try {
-        // Skip email verification for OAuth providers
-        if (account?.provider !== "credentials") {
-          await DBConnect();
-          const existingUser = await User.findOne({ email: user.email });
+        await DBConnect();
 
+        if (account?.provider === "github") {
           const githubPlatformData = {
-            provider: 'github',
+            provider: "github",
             username: profile.login,
             profileUrl: profile.html_url,
-            connectedAt: new Date()
+            connectedAt: new Date(),
           };
 
+          // Check if this is a connection attempt using the profile page
+          const isConnecting = params?.headers?.referer?.includes('/profile') || 
+                             params?.req?.headers?.referer?.includes('/profile');
+
+          if (isConnecting) {
+            // Get current session using alternative method
+            const currentSession = await getServerSession(
+              params?.req || params?.headers, 
+              params?.res || {}, 
+              authOptions
+            );
+            
+            if (!currentSession?.user?.email) {
+              throw new Error("No authenticated user found");
+            }
+
+            // Find and update existing user
+            const currentUser = await User.findOne({ email: currentSession.user.email });
+            if (!currentUser) {
+              throw new Error("Current user not found");
+            }
+
+            // Ensure connectedPlatforms exists
+            if (!currentUser.connectedPlatforms) {
+              currentUser.connectedPlatforms = [];
+            }
+
+            // Update GitHub platform data
+            const platformIndex = currentUser.connectedPlatforms.findIndex(
+              (p) => p.provider === "github"
+            );
+
+            if (platformIndex === -1) {
+              currentUser.connectedPlatforms.push(githubPlatformData);
+            } else {
+              currentUser.connectedPlatforms[platformIndex] = githubPlatformData;
+            }
+
+            await currentUser.save();
+            return false; // Keep existing session
+          }
+
+          // Normal GitHub sign in flow
+          const existingUser = await User.findOne({ email: user.email });
           if (!existingUser) {
-            // Get avatar data from GitHub
             const avatarResponse = await fetch(profile.avatar_url);
             const avatarBuffer = await avatarResponse.arrayBuffer();
             const base64Avatar = Buffer.from(avatarBuffer).toString("base64");
@@ -81,18 +125,16 @@ export const authOptions = {
                 base64: base64Avatar,
                 createdAt: new Date(),
               },
-              connectedPlatforms: [githubPlatformData]
+              connectedPlatforms: [githubPlatformData],
             });
             await newUser.save();
           } else {
-            // Ensure existing user has password_changes field
-            if (typeof existingUser.password_changes === 'undefined') {
+            if (typeof existingUser.password_changes === "undefined") {
               existingUser.password_changes = existingUser.password ? 1 : 0;
             }
 
-            // Update existing user's GitHub platform data
             const platformIndex = existingUser.connectedPlatforms.findIndex(
-              p => p.provider === 'github'
+              (p) => p.provider === "github"
             );
 
             if (platformIndex === -1) {
@@ -101,7 +143,6 @@ export const authOptions = {
               existingUser.connectedPlatforms[platformIndex] = githubPlatformData;
             }
 
-            // Update avatar if not exists
             if (!existingUser.avatar?.base64) {
               const avatarResponse = await fetch(profile.avatar_url);
               const avatarBuffer = await avatarResponse.arrayBuffer();
@@ -118,17 +159,19 @@ export const authOptions = {
             await existingUser.save();
           }
 
-          // Make sure to return the avatar data
           if (existingUser) {
             user.avatar = existingUser.avatar;
           }
           return true;
         }
 
-        // Check email verification for credentials provider
-        const dbUser = await User.findOne({ email: user.email });
-        if (!dbUser?.emailVerified) {
-          throw new Error("Please verify your email before signing in");
+        // Credentials sign in flow
+        if (account?.provider === "credentials") {
+          const dbUser = await User.findOne({ email: user.email });
+          if (!dbUser?.emailVerified) {
+            throw new Error("Please verify your email before signing in");
+          }
+          return true;
         }
 
         return true;
@@ -137,13 +180,24 @@ export const authOptions = {
         throw error;
       }
     },
+    async redirect({ url, baseUrl }) {
+      // Always redirect to profile after GitHub connection
+      if (url.includes('auth/callback/github')) {
+        return `${baseUrl}/profile?connection=success`;
+      }
+      // Default redirect behavior
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      return baseUrl;
+    },
     async session({ session, token }) {
       if (session?.user) {
         await DBConnect();
         const user = await User.findOne({ email: session.user.email })
-          .select('+password +password_changes')
+          .select("+password +password_changes")
           .lean();
-        
+
         if (user) {
           session.user = {
             ...session.user,
@@ -151,21 +205,23 @@ export const authOptions = {
             username: user.username,
             name: user.name,
             email: user.email,
-            avatar: user.avatar ? {
-              base64: user.avatar.base64,
-              contentType: user.avatar.contentType,
-              filename: user.avatar.filename,
-              createdAt: user.avatar.createdAt
-            } : null,
+            avatar: user.avatar
+              ? {
+                  base64: user.avatar.base64,
+                  contentType: user.avatar.contentType,
+                  filename: user.avatar.filename,
+                  createdAt: user.avatar.createdAt,
+                }
+              : null,
             hasPassword: user.password_changes > 0,
             password_changes: user.password_changes,
             provider: user.provider,
-            connectedPlatforms: user.connectedPlatforms.map(platform => ({
+            connectedPlatforms: user.connectedPlatforms.map((platform) => ({
               provider: platform.provider,
               username: platform.username,
               profileUrl: platform.profileUrl,
-              connectedAt: platform.connectedAt
-            }))
+              connectedAt: platform.connectedAt,
+            })),
           };
         }
       }
@@ -178,7 +234,6 @@ export const authOptions = {
   },
 };
 
-// This prevents the error by ensuring DB connection before handler
 await DBConnect();
 
 export const handler = NextAuth(authOptions);

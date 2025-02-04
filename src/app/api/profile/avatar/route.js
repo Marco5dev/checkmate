@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { DBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import User from "@/models/User";
 
 export async function PUT(request) {
   try {

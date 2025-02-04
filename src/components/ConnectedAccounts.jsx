@@ -22,9 +22,11 @@ const ConnectedAccounts = ({ user, onDisconnect }) => {
   const handleConnect = async (platform) => {
     setIsConnecting(prev => ({ ...prev, [platform]: true }));
     try {
+      // Pass state to identify this is a connection attempt
       await signIn(platform, {
         callbackUrl: window.location.origin + '/profile',
-        redirect: true
+        redirect: true,
+        state: { connecting: true }
       });
     } catch (error) {
       toast.error(`Failed to connect to ${platform}`);

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../[...nextauth]/route";
 import { DBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
 export async function POST(request) {

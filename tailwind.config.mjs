@@ -40,13 +40,13 @@ export default {
           "base-400": "#1E1717", // Even darker tone of base-200
           "base-400": "#0F0B0B", // Even darker tone of base-200
           "base-content": "#FFFFFF", // Example content color for base
-          info: "#B85C38",
+          info: "#0277BD",
           "info-content": "#FFFFFF", // Example content color for info
-          success: "#5C3D2E",
-          "success-content": "#FFFFFF", // Example content color for success
-          warning: "#E0C097",
+          success: "#00C853",
+          "success-content": "#000000", // Example content color for success
+          warning: "#F9A825",
           "warning-content": "#000000", // Example content color for warning
-          error: "#B85C38",
+          error: "#D32F2F",
           "error-content": "#FFFFFF", // Example content color for error
 
           "--rounded-box": "1.2rem", // more modern rounded corners for card elements

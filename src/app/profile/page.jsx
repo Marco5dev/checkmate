@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ProfileEditor from "@/components/ProfileEditor";
 import { DBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import User from "@/models/User";
 
 export default async function Profile() {
   await DBConnect();

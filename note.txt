@@ -1,0 +1,1 @@
+remove the register and login with email and password make it only with github also remove the set password thing and email verification and changing the email the user can only change his username and his name add that the user can add a discription for him self and remove the connections thing 
