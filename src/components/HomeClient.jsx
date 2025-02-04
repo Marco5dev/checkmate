@@ -8,6 +8,7 @@ import {
   faChevronUp,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
+import LoadingTaskCard from "@/components/LoadingTaskCard";
 
 export default function HomeClient({ session, greeting }) {
   const [tasks, setTasks] = useState([]);
@@ -16,6 +17,7 @@ export default function HomeClient({ session, greeting }) {
     todo: true, // Open by default
     completed: false, // Closed by default
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchTasks();
@@ -23,12 +25,15 @@ export default function HomeClient({ session, greeting }) {
   }, []);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch("/api/tasks");
       const data = await response.json();
       setTasks(data);
     } catch (error) {
       toast.error("Failed to fetch tasks");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -210,14 +215,22 @@ export default function HomeClient({ session, greeting }) {
               </h2>
             </div>
             <div className="w-full">
-              {renderTasksList(
-                tasks.filter((task) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const taskDate = new Date(task.dueDate);
-                  taskDate.setHours(0, 0, 0, 0);
-                  return taskDate.getTime() === today.getTime();
-                })
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(2)].map((_, i) => (
+                    <LoadingTaskCard key={i} />
+                  ))}
+                </div>
+              ) : (
+                renderTasksList(
+                  tasks.filter((task) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const taskDate = new Date(task.dueDate);
+                    taskDate.setHours(0, 0, 0, 0);
+                    return taskDate.getTime() === today.getTime();
+                  })
+                )
               )}
             </div>
           </div>

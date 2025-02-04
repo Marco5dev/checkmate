@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -12,9 +12,11 @@ import {
   faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import LogoutButton from "./LogoutButton";
+import LoadingAvatar from "./LoadingAvatar";
 
 const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
   const drawerRef = useRef(null);
+  const [isAvatarLoading, setIsAvatarLoading] = useState(true);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,13 +67,16 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
         {/* Profile Header */}
         <div className="flex flex-col items-center pt-12 pb-8 px-4 bg-base-200">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-primary ring-offset-2 ring-offset-base-300 mb-4">
+            {isAvatarLoading && <LoadingAvatar size="lg" />}
             {session?.user?.avatar?.base64 ? (
               <Image
                 src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
                 alt="Profile"
                 width={112}
                 height={112}
-                className="rounded-full object-cover"
+                className={`rounded-full object-cover ${isAvatarLoading ? 'hidden' : ''}`}
+                priority
+                onLoadingComplete={() => setIsAvatarLoading(false)}
               />
             ) : (
               <div className="bg-gray-300 w-full h-full rounded-full flex items-center justify-center">
@@ -84,7 +89,7 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
           </div>
           <div className="text-center">
             <h3 className="text-lg font-bold">{session?.user?.name}</h3>
-            <p className="text-sm text-gray-500">{session?.user?.email}</p>
+            <p className="text-sm text-gray-500">@{session?.user?.username}</p>
           </div>
         </div>
 

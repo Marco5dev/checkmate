@@ -15,6 +15,8 @@ import { faX } from "@fortawesome/free-solid-svg-icons/faX";
 import ProfileDrawer from "./ProfileDrawer";
 import LoadingHeader from "./LoadingHeader"; // Create this component for loading state
 import { usePathname } from "next/navigation";
+import LoadingAvatar from "./LoadingAvatar";
+import LoadingFolderItem from "@/components/LoadingFolderItem";
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -27,18 +29,22 @@ const Header = () => {
   const [drawerSelectedFolder, setDrawerSelectedFolder] = useState(null);
   const [drawerFolderToEdit, setDrawerFolderToEdit] = useState(null);
   const [drawerFolderToDelete, setDrawerFolderToDelete] = useState(null);
+  const [isAvatarLoading, setIsAvatarLoading] = useState(true);
+  const [isFoldersLoading, setIsFoldersLoading] = useState(true);
 
   useEffect(() => {
     const handleFoldersUpdate = (e) => {
       if (e.detail) {
         setDrawerFolders(e.detail.folders);
         setDrawerSelectedFolder(e.detail.selectedFolder);
+        setIsFoldersLoading(false);
       }
     };
 
     window.addEventListener("updateFoldersList", handleFoldersUpdate);
-    return () =>
+    return () => {
       window.removeEventListener("updateFoldersList", handleFoldersUpdate);
+    };
   }, []);
 
   if (status === "loading") {
@@ -66,15 +72,17 @@ const Header = () => {
   const Title = "CheckMate";
 
   const renderAvatar = () => (
-    <div className="w-10 rounded-full overflow-hidden">
+    <div className="w-10 rounded-full overflow-hidden ring-4 ring-primary ring-offset-2 ring-offset-base-300">
+      {isAvatarLoading && <LoadingAvatar />}
       {session.user.avatar?.base64 ? (
         <Image
           src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
           alt={session.user.name || "Profile"}
           width={40}
           height={40}
-          className="rounded-full object-cover"
+          className={`rounded-full object-cover ${isAvatarLoading ? 'hidden' : ''}`}
           priority
+          onLoadingComplete={() => setIsAvatarLoading(false)}
         />
       ) : (
         <div className="bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center">
@@ -139,64 +147,70 @@ const Header = () => {
               <span>All Tasks</span>
             </button>
 
-            {drawerFolders.map((folder) => (
-              <div key={folder._id} className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("selectFolder", {
-                        detail: { folder },
-                      })
-                    );
-                    toggleDrawer();
-                  }}
-                  className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
-                    drawerSelectedFolder?._id === folder._id
-                      ? "bg-base-300 text-primary font-bold"
-                      : ""
-                  }`}
-                >
-                  <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
-                  <span>{folder.name}</span>
-                </button>
-                <div className="dropdown dropdown-end">
-                  <label tabIndex={0} className="btn btn-ghost btn-sm">
-                    <FontAwesomeIcon icon={faEllipsisVertical} />
-                  </label>
-                  <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
-                    <li>
-                      <button
-                        onClick={() => {
-                          window.dispatchEvent(
-                            new CustomEvent("editFolder", {
-                              detail: { folder },
-                            })
-                          );
-                          toggleDrawer();
-                        }}
-                      >
-                        Rename
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => {
-                          window.dispatchEvent(
-                            new CustomEvent("deleteFolder", {
-                              detail: { folder },
-                            })
-                          );
-                          toggleDrawer();
-                        }}
-                        className="text-error"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  </ul>
+            {isFoldersLoading ? (
+              [...Array(4)].map((_, i) => (
+                <LoadingFolderItem key={i} />
+              ))
+            ) : (
+              drawerFolders.map((folder) => (
+                <div key={folder._id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("selectFolder", {
+                          detail: { folder },
+                        })
+                      );
+                      toggleDrawer();
+                    }}
+                    className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
+                      drawerSelectedFolder?._id === folder._id
+                        ? "bg-base-300 text-primary font-bold"
+                        : ""
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
+                    <span>{folder.name}</span>
+                  </button>
+                  <div className="dropdown dropdown-end">
+                    <label tabIndex={0} className="btn btn-ghost btn-sm">
+                      <FontAwesomeIcon icon={faEllipsisVertical} />
+                    </label>
+                    <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                      <li>
+                        <button
+                          onClick={() => {
+                            window.dispatchEvent(
+                              new CustomEvent("editFolder", {
+                                detail: { folder },
+                              })
+                            );
+                            toggleDrawer();
+                          }}
+                        >
+                          Rename
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => {
+                            window.dispatchEvent(
+                              new CustomEvent("deleteFolder", {
+                                detail: { folder },
+                              })
+                            );
+                            toggleDrawer();
+                          }}
+                          className="text-error"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}

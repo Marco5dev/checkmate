@@ -16,6 +16,8 @@ import {
   faAngleRight,
   faPlus, // Add to imports
 } from "@fortawesome/free-solid-svg-icons";
+import LoadingTaskCard from "@/components/LoadingTaskCard";
+import LoadingFolderItem from "@/components/LoadingFolderItem";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -39,6 +41,8 @@ export default function TasksPage() {
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
   const [moveTaskModal, setMoveTaskModal] = useState(null); // Add new state for move task modal
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFoldersLoading, setIsFoldersLoading] = useState(true);
 
   useEffect(() => {
     fetchTasks();
@@ -82,16 +86,20 @@ export default function TasksPage() {
   }, [folders, selectedFolder, mobileDrawerOpen]);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch("/api/tasks");
       const data = await response.json();
       setTasks(data);
     } catch (error) {
       toast.error("Failed to fetch tasks");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fetchFolders = async () => {
+    setIsFoldersLoading(true);
     try {
       const response = await fetch("/api/folders");
       const data = await response.json();
@@ -99,6 +107,8 @@ export default function TasksPage() {
       setFolders(data);
     } catch (error) {
       toast.error("Failed to fetch folders");
+    } finally {
+      setIsFoldersLoading(false);
     }
   };
 
@@ -390,6 +400,16 @@ export default function TasksPage() {
   );
 
   const renderFoldersList = () => {
+    if (isFoldersLoading) {
+      return (
+        <div className="space-y-2">
+          {[...Array(4)].map((_, i) => (
+            <LoadingFolderItem key={i} />
+          ))}
+        </div>
+      );
+    }
+
     return (
       <ul className="space-y-2">
         <li key="all-tasks">
@@ -992,10 +1012,18 @@ export default function TasksPage() {
 
             {/* Tasks List */}
             <div className="space-y-4 bg-base-300 p-4 rounded-lg">
-              {renderTasksList(
-                tasks.filter(
-                  (task) =>
-                    !selectedFolder || task.folderId === selectedFolder._id
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <LoadingTaskCard key={i} />
+                  ))}
+                </div>
+              ) : (
+                renderTasksList(
+                  tasks.filter(
+                    (task) =>
+                      !selectedFolder || task.folderId === selectedFolder._id
+                  )
                 )
               )}
             </div>

@@ -12,22 +12,27 @@ export async function PUT(request) {
     }
 
     await DBConnect();
-    const { avatar } = await request.json();
+    const { filename, contentType, base64 } = await request.json();
 
-    const user = await User.findById(session.user.id);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const updatedUser = await User.findByIdAndUpdate(
+      session.user.id,
+      {
+        $set: {
+          avatar: {
+            filename,
+            contentType,
+            base64,
+            updatedAt: new Date()
+          }
+        }
+      },
+      { new: true }
+    ).lean();
 
-    user.avatar = avatar;
-    await user.save();
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      avatar: updatedUser.avatar
+    });
   } catch (error) {
-    console.error("Avatar update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update avatar" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
