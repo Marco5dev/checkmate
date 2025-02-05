@@ -36,9 +36,9 @@ export default {
           "base-100": "#121212",
           "base-200": "#1c1c1c", // Darker tone of base-100
           "base-300": "#2c2c2c", // Even darker tone of base-200
-          "base-400": "#2D2424", // Even darker tone of base-200
-          "base-400": "#1E1717", // Even darker tone of base-200
-          "base-400": "#0F0B0B", // Even darker tone of base-200
+          "base-400": "#2D2424", // Even darker tone of base-300
+          "base-500": "#1E1717", // Even darker tone of base-400
+          "base-600": "#0F0B0B", // Even darker tone of base-500
           "base-content": "#FFFFFF", // Example content color for base
           info: "#0277BD",
           "info-content": "#FFFFFF", // Example content color for info

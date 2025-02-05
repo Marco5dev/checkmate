@@ -215,7 +215,7 @@ const Header = () => {
 
   return (
     <div className="flex justify-center my-4 fixed top-0 w-screen z-50">
-      <div className="navbar bg-base-300 w-[95%] lg:w-[95%] rounded-xl justify-between shadow-2xl">
+      <div className="navbar bg-base-300 w-[95%] lg:w-[95%] rounded-xl justify-between">
         <div className="lg:hidden">
           <button
             onClick={() => setIsLeftProfileOpen(true)}

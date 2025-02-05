@@ -7,21 +7,31 @@ import {
   faFolderOpen,
   faChevronUp,
   faChevronDown,
+  faThumbtack,
 } from "@fortawesome/free-solid-svg-icons";
 import LoadingTaskCard from "@/components/loadings/LoadingTaskCard";
+import Editor from "@/components/Editor";
 
 export default function HomeClient({ session, greeting }) {
   const [tasks, setTasks] = useState([]);
   const [folders, setFolders] = useState([]);
+  const [pinnedNotes, setPinnedNotes] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     todo: true, // Open by default
     completed: false, // Closed by default
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedNote, setSelectedNote] = useState(null);
+  const [isPinnedNotesLoading, setIsPinnedNotesLoading] = useState(true);
+  const [tags, setTags] = useState([]);
+  const [noteFolders, setNoteFolders] = useState([]);
 
   useEffect(() => {
     fetchTasks();
     fetchFolders();
+    fetchPinnedNotes();
+    fetchNoteFolders();
+    fetchTags();
   }, []);
 
   const fetchTasks = async () => {
@@ -44,6 +54,39 @@ export default function HomeClient({ session, greeting }) {
       setFolders(data);
     } catch (error) {
       toast.error("Failed to fetch folders");
+    }
+  };
+
+  const fetchPinnedNotes = async () => {
+    try {
+      setIsPinnedNotesLoading(true);
+      const response = await fetch("/api/notes");
+      const data = await response.json();
+      setPinnedNotes(data.filter((note) => note.isPinned));
+    } catch (error) {
+      toast.error("Failed to fetch pinned notes");
+    } finally {
+      setIsPinnedNotesLoading(false);
+    }
+  };
+
+  const fetchNoteFolders = async () => {
+    try {
+      const response = await fetch("/api/notes-folders");
+      const data = await response.json();
+      setNoteFolders(data);
+    } catch (error) {
+      toast.error("Failed to fetch note folders");
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await fetch("/api/tags");
+      const data = await response.json();
+      setTags(data);
+    } catch (error) {
+      toast.error("Failed to fetch tags");
     }
   };
 
@@ -81,6 +124,55 @@ export default function HomeClient({ session, greeting }) {
       ...prev,
       [section]: !prev[section],
     }));
+  };
+
+  const updateNote = async (noteId, updates) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update note");
+      }
+
+      const updatedNote = await response.json();
+      
+      // If pin status changed, refresh pinned notes
+      if (updates.isPinned !== undefined) {
+        await fetchPinnedNotes();
+      } else {
+        // Otherwise just update the current note in state
+        setPinnedNotes(pinnedNotes.map(note => 
+          note._id === noteId ? updatedNote : note
+        ));
+      }
+      
+      return updatedNote;
+    } catch (error) {
+      toast.error("Failed to update note");
+      throw error;
+    }
+  };
+
+  const deleteNote = async (noteId) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete note");
+      }
+
+      setPinnedNotes(pinnedNotes.filter(note => note._id !== noteId));
+      setSelectedNote(null);
+      toast.success("Note deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete note");
+    }
   };
 
   const renderTasksList = (tasks) => {
@@ -194,7 +286,7 @@ export default function HomeClient({ session, greeting }) {
   }, []);
 
   return (
-    <main className="login-bg bg-cover bg-no-repeat bg-center flex flex-col content-center text-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
+    <main className="login-bg bg-cover bg-no-repeat bg-center flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
       <div className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
         <div className="flex justify-start h-full">
           <h1 className="text-2xl flex flex-col justify-center items-center font-merriweather">
@@ -239,29 +331,41 @@ export default function HomeClient({ session, greeting }) {
           <div className="flex justify-start h-full flex-col items-center w-full">
             <div className="flex flex-col justify-center items-center p-3">
               <h2 className="text-3xl text-primary font-edu font-bold">
-                Pined Notes
+                Pinned Notes
               </h2>
             </div>
             <div className="w-full space-y-4">
-              {tasks.length === 0 ? (
-                <p className="text-center text-gray-500">No Pined Notes!</p>
-              ) : (
-                tasks.map((task) => (
+              {isPinnedNotesLoading ? (
+                // Loading placeholders
+                [...Array(3)].map((_, index) => (
                   <div
-                    key={task._id}
-                    className="flex items-center gap-2 p-2 bg-base-100 rounded-lg"
+                    key={`loading-${index}`}
+                    className="animate-pulse flex items-center gap-2 p-4 bg-base-100 rounded-lg"
                   >
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      className="checkbox checkbox-primary"
-                      disabled
+                    <div className="w-4 h-4 bg-primary rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-base-200 rounded w-3/4"></div>
+                    </div>
+                  </div>
+                ))
+              ) : pinnedNotes.length === 0 ? (
+                <p className="text-center text-gray-500">No pinned notes</p>
+              ) : (
+                pinnedNotes.map((note) => (
+                  <div
+                    key={note._id}
+                    className="flex items-center gap-2 p-4 bg-base-100 rounded-lg cursor-pointer hover:bg-base-200 transition-colors"
+                    onClick={() => setSelectedNote(note)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faThumbtack}
+                      className="text-primary"
                     />
-                    <span
-                      className={task.done ? "line-through text-gray-500" : ""}
-                    >
-                      {task.title}
-                    </span>
+                    <div className="flex-1">
+                      <h3 className="font-medium">
+                        {note.title || "Untitled"}
+                      </h3>
+                    </div>
                   </div>
                 ))
               )}
@@ -269,6 +373,22 @@ export default function HomeClient({ session, greeting }) {
           </div>
         </div>
       </div>
+
+      {/* Note Editor Modal */}
+      {selectedNote && (
+        <div className="modal modal-open">
+          <div className="modal-box w-11/12 max-w-5xl h-[80vh]">
+            <Editor
+              note={selectedNote}
+              onUpdate={(updates) => updateNote(selectedNote._id, updates)}
+              onDelete={() => deleteNote(selectedNote._id)}
+              folders={noteFolders}
+              tags={tags}
+              onClose={() => setSelectedNote(null)}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }

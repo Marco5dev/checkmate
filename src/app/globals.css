@@ -240,3 +240,106 @@
 .login-bg {
     background-image: url('../../public/wallpapers/login.png');
 }
+
+/* Editor Styles */
+.markdown-editor {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.markdown-editor ::selection {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Adjust the line height to match the textarea and the preview */
+.markdown-editor textarea,
+.markdown-editor div {
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+/* GitHub-like Markdown Styles */
+.prose {
+  color: #c9d1d9;
+  line-height: 1.5;
+}
+
+.prose h1 {
+  font-size: 2em;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.prose h2 {
+  font-size: 1.5em;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.prose h3 {
+  font-size: 1.25em;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.prose p {
+  margin-bottom: 16px;
+}
+
+.prose code {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 85%;
+}
+
+.prose pre {
+  margin-bottom: 16px;
+  overflow: auto;
+  border-radius: 6px;
+}
+
+.prose ul, .prose ol {
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+.prose hr {
+  height: 0.25em;
+  margin: 24px 0;
+  background-color: #30363d;
+  border: 0;
+}
+
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.prose th, .prose td {
+  padding: 6px 13px;
+  border: 1px solid #30363d;
+}
+
+.prose tr {
+  background-color: #0d1117;
+  border-top: 1px solid #30363d;
+}
+
+.prose tr:nth-child(2n) {
+  background-color: #161b22;
+}
+
+/* Editor specific styles */
+.editor-wrapper {
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  line-height: 1.5;
+  tab-size: 2;
+}
