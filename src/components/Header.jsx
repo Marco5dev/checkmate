@@ -13,10 +13,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faX } from "@fortawesome/free-solid-svg-icons/faX";
 import ProfileDrawer from "./ProfileDrawer";
-import LoadingHeader from "./LoadingHeader"; // Create this component for loading state
+import LoadingHeader from "./loadings/LoadingHeader"; // Create this component for loading state
 import { usePathname } from "next/navigation";
-import LoadingAvatar from "./LoadingAvatar";
-import LoadingFolderItem from "@/components/LoadingFolderItem";
+import LoadingAvatar from "./loadings/LoadingAvatar";
+import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);

@@ -12,7 +12,7 @@ import {
   faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import LogoutButton from "./LogoutButton";
-import LoadingAvatar from "./LoadingAvatar";
+import LoadingAvatar from "./loadings/LoadingAvatar";
 
 const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
   const drawerRef = useRef(null);

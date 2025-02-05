@@ -8,7 +8,7 @@ import {
   faChevronUp,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import LoadingTaskCard from "@/components/LoadingTaskCard";
+import LoadingTaskCard from "@/components/loadings/LoadingTaskCard";
 
 export default function HomeClient({ session, greeting }) {
   const [tasks, setTasks] = useState([]);

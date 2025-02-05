@@ -16,8 +16,8 @@ import {
   faAngleRight,
   faPlus, // Add to imports
 } from "@fortawesome/free-solid-svg-icons";
-import LoadingTaskCard from "@/components/LoadingTaskCard";
-import LoadingFolderItem from "@/components/LoadingFolderItem";
+import LoadingTaskCard from "@/components/loadings/LoadingTaskCard";
+import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
