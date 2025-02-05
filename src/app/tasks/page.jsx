@@ -387,11 +387,11 @@ export default function TasksPage() {
             setNewTask({ ...newTask, description: e.target.value })
           }
           placeholder="Task description (optional)"
-          className="textarea textarea-bordered w-full"
+          className="textarea textarea-bordered w-full "
           rows={3}
         />
         <div className="flex justify-end">
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary w-full">
             Add Task
           </button>
         </div>
@@ -577,7 +577,7 @@ export default function TasksPage() {
                               dueDate: e.target.value,
                             })
                           }
-                          className="input input-bordered"
+                          className="input input-bordered w-full"
                           required
                         />
                       </div>
@@ -1103,7 +1103,7 @@ export default function TasksPage() {
               <div className="flex justify-end mt-4">
                 <button
                   onClick={() => setIsNewTaskModalOpen(false)}
-                  className="btn btn-ghost"
+                  className="btn btn-ghost w-full"
                 >
                   Cancel
                 </button>

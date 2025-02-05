@@ -55,10 +55,6 @@ const Header = () => {
     return null; // Don't render header if no session
   }
 
-  // Debug session data
-  console.log("Session user:", session.user);
-  console.log("Avatar data:", session.user.avatar);
-
   const toggleDrawer = () => {
     const newState = !isDrawerOpen;
     setIsDrawerOpen(newState);
@@ -237,7 +233,7 @@ const Header = () => {
 
         {/* Center section */}
         <div className="hidden lg:flex flex-none absolute left-1/2 transform -translate-x-1/2">
-          <ul className="menu menu-horizontal px-1">
+          <ul className="menu menu-horizontal px-1 gap-2">
             <li>
               <Link href="/">Home</Link>
             </li>
