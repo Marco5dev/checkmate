@@ -23,6 +23,7 @@ import Editor from "@/components/Editor";
 import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
 
 export default function NotesClient({ session }) {
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [notes, setNotes] = useState([]);
   const [folders, setFolders] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
@@ -42,20 +43,89 @@ export default function NotesClient({ session }) {
   const [showDeleteTagModal, setShowDeleteTagModal] = useState(null);
   const [startInPreview, setStartInPreview] = useState(true); // Add this state
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
+  const [isTagsLoading, setIsTagsLoading] = useState(true); // Add new state
 
   useEffect(() => {
     fetchNotes();
     fetchFolders();
     fetchTags();
+
+    // Add listener for mobile drawer events
+    const handleDrawerToggle = (e) => {
+      setMobileDrawerOpen(e.detail?.open || false);
+    };
+
+    window.addEventListener("toggleMobileDrawer", handleDrawerToggle);
+    return () => window.removeEventListener("toggleMobileDrawer", handleDrawerToggle);
+  }, []);
+
+  useEffect(() => {
+    // Update drawer folders when mobile drawer is open
+    if (mobileDrawerOpen) {
+      window.dispatchEvent(new CustomEvent("updateNotesFoldersList", {
+        detail: { folders, selectedFolder }
+      }));
+    }
+  }, [folders, selectedFolder, mobileDrawerOpen]);
+
+  useEffect(() => {
+    // Add listener for new folder modal
+    const handleNewFolder = () => {
+      setIsNewFolderModalOpen(true);
+      // Close the mobile drawer when opening modal
+      window.dispatchEvent(
+        new CustomEvent("toggleMobileDrawer", { detail: { open: false } })
+      );
+    };
+
+    window.addEventListener("openNotesNewFolderModal", handleNewFolder);
+    return () => window.removeEventListener("openNotesNewFolderModal", handleNewFolder);
+  }, []);
+
+  useEffect(() => {
+    // Add listeners for folder interactions from mobile drawer
+    const handleSelectFolder = (e) => {
+      if (e.detail?.folder) {
+        setSelectedFolder(e.detail.folder);
+      } else {
+        setSelectedFolder(null);
+      }
+    };
+
+    const handleEditFolder = (e) => {
+      if (e.detail?.folder) {
+        setEditingFolder(e.detail.folder);
+        setNewFolderName(e.detail.folder.name);
+        setIsEditFolderModalOpen(true);
+      }
+    };
+
+    const handleDeleteFolder = (e) => {
+      if (e.detail?.folder) {
+        setShowDeleteModal(e.detail.folder);
+      }
+    };
+
+    window.addEventListener('selectNotesFolder', handleSelectFolder);
+    window.addEventListener('editNotesFolder', handleEditFolder);
+    window.addEventListener('deleteNotesFolder', handleDeleteFolder);
+
+    return () => {
+      window.removeEventListener('selectNotesFolder', handleSelectFolder);
+      window.removeEventListener('editNotesFolder', handleEditFolder);
+      window.removeEventListener('deleteNotesFolder', handleDeleteFolder);
+    };
   }, []);
 
   const fetchNotes = async () => {
     try {
       const response = await fetch("/api/notes");
       const data = await response.json();
-      setNotes(data);
+      // Ensure data is an array
+      setNotes(Array.isArray(data) ? data : []);
     } catch (error) {
       toast.error("Failed to fetch notes");
+      setNotes([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +151,8 @@ export default function NotesClient({ session }) {
       setTags(data);
     } catch (error) {
       toast.error("Failed to fetch tags");
+    } finally {
+      setIsTagsLoading(false); // Add this line
     }
   };
 
@@ -348,7 +420,10 @@ export default function NotesClient({ session }) {
     }
   };
 
-  const filteredNotes = notes.filter((note) => {
+  const filteredNotes = (notes || []).filter((note) => {
+    // Add null check and ensure notes is an array
+    if (!Array.isArray(notes)) return [];
+    
     // Filter by folder
     if (selectedFolder && note.folderId?._id !== selectedFolder._id) {
       return false;
@@ -388,9 +463,9 @@ export default function NotesClient({ session }) {
   };
 
   return (
-    <div className="flex w-full h-full">
-      {/* Sidebar */}
-      <div className="w-1/4 bg-base-300 p-4 rounded-lg mr-4 flex flex-col">
+    <div className="w-[95%] h-5/6 mt-24 flex">
+      {/* Hide sidebar on mobile */}
+      <div className="hidden lg:block w-1/4 bg-base-300 p-4 rounded-lg mr-4 flex flex-col">
         <h2 className="text-xl font-bold mb-4">Folders</h2>
         <div className="flex-1 overflow-auto h-5/6">
           {isFoldersLoading ? (
@@ -402,7 +477,9 @@ export default function NotesClient({ session }) {
           ) : folders.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p className="mb-2">No folders created yet</p>
-              <p className="text-sm">Create a folder to organize your notes</p>
+              <p className="text-sm">
+                Create a folder to organize your notes
+              </p>
             </div>
           ) : (
             <ul className="space-y-2 h-full">
@@ -431,9 +508,13 @@ export default function NotesClient({ session }) {
                     }`}
                   >
                     <div
-                      onClick={() => !editingFolder && setSelectedFolder(folder)}
+                      onClick={() =>
+                        !editingFolder && setSelectedFolder(folder)
+                      }
                       className={`cursor-pointer flex-grow flex items-center gap-2 ${
-                        selectedFolder?._id === folder._id ? "text-primary font-bold" : ""
+                        selectedFolder?._id === folder._id
+                          ? "text-primary font-bold"
+                          : ""
                       }`}
                     >
                       <FontAwesomeIcon icon={faFolder} className="w-4 h-4" />
@@ -443,19 +524,35 @@ export default function NotesClient({ session }) {
                       <label tabIndex={0} className="btn btn-ghost btn-sm">
                         <FontAwesomeIcon icon={faEllipsisVertical} />
                       </label>
-                      <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
+                      >
                         <li>
-                          <button onClick={() => {
-                            setEditingFolder(folder);
-                            setNewFolderName(folder.name);
-                            setIsEditFolderModalOpen(true);
-                          }}>
-                            <FontAwesomeIcon icon={faPencilAlt} className="mr-2" /> Rename
+                          <button
+                            onClick={() => {
+                              setEditingFolder(folder);
+                              setNewFolderName(folder.name);
+                              setIsEditFolderModalOpen(true);
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faPencilAlt}
+                              className="mr-2"
+                            />{" "}
+                            Rename
                           </button>
                         </li>
                         <li>
-                          <button onClick={() => setShowDeleteModal(folder)} className="text-error">
-                            <FontAwesomeIcon icon={faTrashAlt} className="mr-2" /> Delete
+                          <button
+                            onClick={() => setShowDeleteModal(folder)}
+                            className="text-error"
+                          >
+                            <FontAwesomeIcon
+                              icon={faTrashAlt}
+                              className="mr-2"
+                            />{" "}
+                            Delete
                           </button>
                         </li>
                       </ul>
@@ -477,10 +574,18 @@ export default function NotesClient({ session }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Tags Bar */}
+        {/* Updated Tags Bar with responsive loading state */}
         <div className="bg-base-300 rounded-lg p-4 mb-4 flex items-center">
           <div className="flex-1 flex items-center gap-2 overflow-x-auto">
-            {tags.length === 0 ? (
+            {isTagsLoading ? (
+              <div className="flex gap-2 w-full overflow-x-auto">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="animate-pulse flex-shrink-0">
+                    <div className="h-8 w-16 sm:w-24 bg-base-200 rounded-full"></div>
+                  </div>
+                ))}
+              </div>
+            ) : tags.length === 0 ? (
               <p className="text-gray-500 text-sm">No tags created yet</p>
             ) : (
               (tags || []).map((tag) => {
@@ -547,13 +652,13 @@ export default function NotesClient({ session }) {
                 <div className="col-span-full text-center py-12 text-gray-500">
                   <p className="text-lg mb-2">No notes found</p>
                   <p className="text-sm mb-4">
-                    {selectedFolder 
+                    {selectedFolder
                       ? "This folder is empty"
                       : selectedTags.length > 0
                       ? "No notes match the selected tags"
                       : "Start by creating your first note"}
                   </p>
-                  <button 
+                  <button
                     onClick={createEmptyNote}
                     className="btn btn-primary btn-sm"
                   >

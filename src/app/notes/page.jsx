@@ -11,10 +11,8 @@ export default async function NotesPage() {
   }
 
   return (
-    <main className="flex justify-center h-screen login-bg bg-cover bg-no-repeat bg-center">
-      <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center contect-center">
-        <NotesClient session={session} />
-      </div>
+    <main className="flex justify-center h-screen login-bg bg-cover bg-no-repeat bg-center w-screen">
+      <NotesClient session={session} />
     </main>
   );
 }

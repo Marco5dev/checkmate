@@ -25,6 +25,8 @@ export default function HomeClient({ session, greeting }) {
   const [isPinnedNotesLoading, setIsPinnedNotesLoading] = useState(true);
   const [tags, setTags] = useState([]);
   const [noteFolders, setNoteFolders] = useState([]);
+  const [dailyQuote, setDailyQuote] = useState(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(true);
 
   useEffect(() => {
     fetchTasks();
@@ -32,6 +34,7 @@ export default function HomeClient({ session, greeting }) {
     fetchPinnedNotes();
     fetchNoteFolders();
     fetchTags();
+    fetchDailyQuote();
   }, []);
 
   const fetchTasks = async () => {
@@ -90,6 +93,18 @@ export default function HomeClient({ session, greeting }) {
     }
   };
 
+  const fetchDailyQuote = async () => {
+    try {
+      const response = await fetch("/api/quotes");
+      const data = await response.json();
+      setDailyQuote(data);
+    } catch (error) {
+      console.error("Failed to fetch daily quote:", error);
+    } finally {
+      setIsQuoteLoading(false);
+    }
+  };
+
   const toggleTask = async (taskId) => {
     try {
       const task = tasks.find((t) => t._id === taskId);
@@ -139,17 +154,17 @@ export default function HomeClient({ session, greeting }) {
       }
 
       const updatedNote = await response.json();
-      
+
       // If pin status changed, refresh pinned notes
       if (updates.isPinned !== undefined) {
         await fetchPinnedNotes();
       } else {
         // Otherwise just update the current note in state
-        setPinnedNotes(pinnedNotes.map(note => 
-          note._id === noteId ? updatedNote : note
-        ));
+        setPinnedNotes(
+          pinnedNotes.map((note) => (note._id === noteId ? updatedNote : note))
+        );
       }
-      
+
       return updatedNote;
     } catch (error) {
       toast.error("Failed to update note");
@@ -160,14 +175,14 @@ export default function HomeClient({ session, greeting }) {
   const deleteNote = async (noteId) => {
     try {
       const response = await fetch(`/api/notes/${noteId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (!response.ok) {
         throw new Error("Failed to delete note");
       }
 
-      setPinnedNotes(pinnedNotes.filter(note => note._id !== noteId));
+      setPinnedNotes(pinnedNotes.filter((note) => note._id !== noteId));
       setSelectedNote(null);
       toast.success("Note deleted successfully");
     } catch (error) {
@@ -287,19 +302,55 @@ export default function HomeClient({ session, greeting }) {
 
   return (
     <main className="login-bg bg-cover bg-no-repeat bg-center flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
-      <div className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
-        <div className="flex justify-start h-full">
-          <h1 className="text-2xl flex flex-col justify-center items-center font-merriweather">
-            {greeting},{" "}
-            <span className="text-5xl text-primary font-edu font-bold">
-              {session.user.name}!
-            </span>
-          </h1>
-        </div>
+      <div className="flex flex-col gap-5 lg:gap-10 py-5 w-full h-5/6 items-center">
+        {/* Good morning section */}
+        <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
+          <div className="flex justify-start h-full">
+            <h1 className="text-2xl flex flex-col justify-center items-center font-merriweather">
+              {greeting},{" "}
+              <span className="text-5xl text-primary font-edu font-bold text-center">
+                {session.user.name}!
+              </span>
+            </h1>
+          </div>
+        </section>
+
+        {/* Updated Quote Section with styled quote marks */}
+        <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
+          <div className="flex justify-start h-full flex-col items-center">
+            <h2 className="text-2xl font-merriweather mb-4">
+              Quote of the Day
+            </h2>
+            {isQuoteLoading ? (
+              <div className="animate-pulse flex flex-col items-center gap-4">
+                <div className="h-4 bg-base-200 rounded w-64"></div>
+                <div className="h-4 bg-base-200 rounded w-32"></div>
+              </div>
+            ) : dailyQuote ? (
+              <div className="flex flex-col items-center text-center relative">
+                <div className="flex">
+                  {/* Opening quote mark */}
+                  <span className="text-primary text-4xl font-bold">❝</span>
+                  <p className="text-lg font-edu italic mb-2">
+                    {dailyQuote.quote}
+                  </p>
+                  {/* Closing quote mark */}
+                  <span className="text-primary text-4xl font-bold">❞</span>
+                </div>
+                <p className="text-primary font-bold mt-4">
+                  - {dailyQuote.author}
+                </p>
+              </div>
+            ) : (
+              <p className="text-gray-500">Failed to load daily quote</p>
+            )}
+          </div>
+        </section>
       </div>
 
       <div className="flex lg:flex-row flex-col items-start gap-5 lg:gap-10 py-5 w-[95%] h-5/6">
-        <div className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-full lg:w-1/2 justify-center">
+        {/* Tasks Section */}
+        <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-full lg:w-1/2 justify-center">
           <div className="flex justify-start h-full flex-col items-center w-full">
             <div className="flex flex-col justify-center items-center p-3">
               <h2 className="text-3xl text-primary font-edu font-bold">
@@ -326,8 +377,10 @@ export default function HomeClient({ session, greeting }) {
               )}
             </div>
           </div>
-        </div>
-        <div className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-full lg:w-1/2 justify-center">
+        </section>
+
+        {/* Pined Notes Section */}
+        <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-full lg:w-1/2 justify-center">
           <div className="flex justify-start h-full flex-col items-center w-full">
             <div className="flex flex-col justify-center items-center p-3">
               <h2 className="text-3xl text-primary font-edu font-bold">
@@ -371,7 +424,7 @@ export default function HomeClient({ session, greeting }) {
               )}
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Note Editor Modal */}

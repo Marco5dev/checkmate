@@ -4,21 +4,24 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { DBConnect } from "@/utils/mongodb";
 import Notes from "@/models/Notes";
 
-export async function GET(request) {
+export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     await DBConnect();
-    // Update population to include tag details
     const notes = await Notes.find({ userId: session.user.id })
-      .populate('folderId')
-      .populate('tags') // This will populate the full tag objects
-      .sort({ isPinned: -1, updatedAt: -1 });
+      .populate(["folderId", "tags"])
+      .lean()
+      .exec();
 
-    return NextResponse.json(notes);
+    // Ensure we return an array
+    return NextResponse.json(Array.isArray(notes) ? notes : []);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Fetch notes error:", error);
+    return NextResponse.json([], { status: 500 }); // Return empty array on error
   }
 }
 

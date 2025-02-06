@@ -21,7 +21,7 @@ export async function GET(req, { params }) {
 
     await DBConnect();
 
-    const [id] = await Promise.all([Promise.resolve(params.id)]);
+    const id = params.id;  // Remove Promise.resolve
 
     if (!id) {
       return NextResponse.json(
@@ -54,8 +54,7 @@ export async function PUT(req, { params }) {
 
     await DBConnect();
     const data = await req.json();
-
-    const [id] = await Promise.all([Promise.resolve(params.id)]);
+    const id = params.id;  // Remove the Promise.resolve wrapper
 
     if (!id) {
       return NextResponse.json(
@@ -91,7 +90,7 @@ export async function DELETE(req, { params }) {
 
     await DBConnect();
 
-    const [id] = await Promise.all([Promise.resolve(params.id)]);
+    const id = params.id;  // Remove Promise.resolve
 
     if (!id) {
       return NextResponse.json(

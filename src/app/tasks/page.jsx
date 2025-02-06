@@ -927,7 +927,7 @@ export default function TasksPage() {
 
   return (
     <div className="flex justify-center h-screen login-bg bg-cover bg-no-repeat bg-center">
-      <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center contect-center">
+      <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center content-center">
         <div className="flex flex-col md:flex-row w-full h-full gap-6">
           <div className="hidden lg:block bg-base-300 p-4 rounded-lg w-1/4">
             <h2 className="text-xl font-bold mb-4">Folders</h2>

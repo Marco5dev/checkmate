@@ -39,19 +39,19 @@ export async function POST(request) {
     }
 
     const { name, parentId } = await request.json();
-    
+
     const folderData = {
       name,
       userId: session.user.id,
-      parentId: parentId || null
+      parentId: parentId || null,
     };
 
-    console.log('Creating folder with:', folderData);
+    console.log("Creating folder with:", folderData);
 
     const folder = await Folder.create(folderData);
     return NextResponse.json(folder);
   } catch (error) {
-    console.error('Folder creation error:', error);
+    console.error("Folder creation error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to create folder" },
       { status: 500 }
@@ -95,14 +95,11 @@ export async function DELETE(request) {
     }
 
     const { folderId, deleteTasks } = await request.json();
-    
+
     // Delete all nested folders
-    await Folder.deleteMany({ 
+    await Folder.deleteMany({
       userId: session.user.id,
-      $or: [
-        { _id: folderId },
-        { parentId: folderId }
-      ]
+      $or: [{ _id: folderId }, { parentId: folderId }],
     });
 
     // Handle tasks based on user choice

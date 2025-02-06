@@ -9,7 +9,7 @@ import {
   faBars,
   faUser,
   faFolderOpen,
-  faEllipsisVertical
+  faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import { faX } from "@fortawesome/free-solid-svg-icons/faX";
 import ProfileDrawer from "./ProfileDrawer";
@@ -25,12 +25,15 @@ const Header = () => {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const isTasksRoute = pathname === "/tasks";
+  const isNotesRoute = pathname === "/notes";
   const [drawerFolders, setDrawerFolders] = useState([]);
   const [drawerSelectedFolder, setDrawerSelectedFolder] = useState(null);
   const [drawerFolderToEdit, setDrawerFolderToEdit] = useState(null);
   const [drawerFolderToDelete, setDrawerFolderToDelete] = useState(null);
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
+  const [notesDrawerFolders, setNotesDrawerFolders] = useState([]);
+  const [notesSelectedFolder, setNotesSelectedFolder] = useState(null);
 
   useEffect(() => {
     const handleFoldersUpdate = (e) => {
@@ -41,9 +44,22 @@ const Header = () => {
       }
     };
 
+    const handleNotesFoldersUpdate = (e) => {
+      if (e.detail) {
+        setNotesDrawerFolders(e.detail.folders);
+        setNotesSelectedFolder(e.detail.selectedFolder);
+        setIsFoldersLoading(false);
+      }
+    };
+
     window.addEventListener("updateFoldersList", handleFoldersUpdate);
+    window.addEventListener("updateNotesFoldersList", handleNotesFoldersUpdate);
     return () => {
       window.removeEventListener("updateFoldersList", handleFoldersUpdate);
+      window.removeEventListener(
+        "updateNotesFoldersList",
+        handleNotesFoldersUpdate
+      );
     };
   }, []);
 
@@ -76,7 +92,9 @@ const Header = () => {
           alt={session.user.name || "Profile"}
           width={40}
           height={40}
-          className={`rounded-full object-cover ${isAvatarLoading ? 'hidden' : ''}`}
+          className={`rounded-full object-cover ${
+            isAvatarLoading ? "hidden" : ""
+          }`}
           priority
           onLoadingComplete={() => setIsAvatarLoading(false)}
         />
@@ -143,24 +161,122 @@ const Header = () => {
               <span>All Tasks</span>
             </button>
 
+            {isFoldersLoading
+              ? [...Array(4)].map((_, i) => <LoadingFolderItem key={i} />)
+              : drawerFolders.map((folder) => (
+                  <div key={folder._id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("selectFolder", {
+                            detail: { folder },
+                          })
+                        );
+                        toggleDrawer();
+                      }}
+                      className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
+                        drawerSelectedFolder?._id === folder._id
+                          ? "bg-base-300 text-primary font-bold"
+                          : ""
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={faFolderOpen}
+                        className="w-4 h-4"
+                      />
+                      <span>{folder.name}</span>
+                    </button>
+                    <div className="dropdown dropdown-end">
+                      <label tabIndex={0} className="btn btn-ghost btn-sm">
+                        <FontAwesomeIcon icon={faEllipsisVertical} />
+                      </label>
+                      <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                        <li>
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(
+                                new CustomEvent("editFolder", {
+                                  detail: { folder },
+                                })
+                              );
+                              toggleDrawer();
+                            }}
+                          >
+                            Rename
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(
+                                new CustomEvent("deleteFolder", {
+                                  detail: { folder },
+                                })
+                              );
+                              toggleDrawer();
+                            }}
+                            className="text-error"
+                          >
+                            Delete
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+          </div>
+        </div>
+      )}
+
+      {isNotesRoute && (
+        <div className="p-4 m-2 rounded-lg px-4 bg-base-200">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-4">Notes Folders</h2>
+            <button
+              onClick={() => {
+                // Use different event name for notes folders
+                window.dispatchEvent(new CustomEvent("openNotesNewFolderModal"));
+                toggleDrawer();
+              }}
+              className="btn btn-primary btn-sm w-full mb-4"
+            >
+              New Folder
+            </button>
+          </div>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent("selectNotesFolder", {
+                    detail: { folder: null },
+                  })
+                );
+                toggleDrawer();
+              }}
+              className={`flex w-full items-center gap-2 p-2 rounded hover:bg-base-300 ${
+                !notesSelectedFolder ? "bg-base-300 text-primary font-bold" : ""
+              }`}
+            >
+              <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
+              <span>All Notes</span>
+            </button>
+
             {isFoldersLoading ? (
-              [...Array(4)].map((_, i) => (
-                <LoadingFolderItem key={i} />
-              ))
+              [...Array(4)].map((_, i) => <LoadingFolderItem key={i} />)
             ) : (
-              drawerFolders.map((folder) => (
+              notesDrawerFolders.map((folder) => (
                 <div key={folder._id} className="flex items-center gap-2">
                   <button
                     onClick={() => {
                       window.dispatchEvent(
-                        new CustomEvent("selectFolder", {
+                        new CustomEvent("selectNotesFolder", {
                           detail: { folder },
                         })
                       );
                       toggleDrawer();
                     }}
                     className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
-                      drawerSelectedFolder?._id === folder._id
+                      notesSelectedFolder?._id === folder._id
                         ? "bg-base-300 text-primary font-bold"
                         : ""
                     }`}
@@ -177,13 +293,14 @@ const Header = () => {
                         <button
                           onClick={() => {
                             window.dispatchEvent(
-                              new CustomEvent("editFolder", {
+                              new CustomEvent("editNotesFolder", {
                                 detail: { folder },
                               })
                             );
                             toggleDrawer();
                           }}
                         >
+                          <FontAwesomeIcon icon={faPencilAlt} className="mr-2" />
                           Rename
                         </button>
                       </li>
@@ -191,7 +308,7 @@ const Header = () => {
                         <button
                           onClick={() => {
                             window.dispatchEvent(
-                              new CustomEvent("deleteFolder", {
+                              new CustomEvent("deleteNotesFolder", {
                                 detail: { folder },
                               })
                             );
@@ -199,6 +316,7 @@ const Header = () => {
                           }}
                           className="text-error"
                         >
+                          <FontAwesomeIcon icon={faTrashAlt} className="mr-2" />
                           Delete
                         </button>
                       </li>
@@ -216,12 +334,13 @@ const Header = () => {
   return (
     <div className="flex justify-center my-4 fixed top-0 w-screen z-50">
       <div className="navbar bg-base-300 w-[95%] lg:w-[95%] rounded-xl justify-between">
+        {/* profile drawer */}
         <div className="lg:hidden">
           <button
-            onClick={() => setIsLeftProfileOpen(true)}
-            className="btn btn-ghost btn-circle avatar"
+            onClick={toggleDrawer}
+            className="btn text-xl btn-square btn-ghost p-3 lg:hidden"
           >
-            {renderAvatar()}
+            <FontAwesomeIcon icon={faBars} />
           </button>
         </div>
 
@@ -250,16 +369,9 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsRightProfileOpen(true)}
-            className="btn btn-ghost btn-circle avatar hidden lg:flex"
+            className="btn btn-ghost btn-circle avatar"
           >
             {renderAvatar()}
-          </button>
-
-          <button
-            onClick={toggleDrawer}
-            className="btn text-xl btn-square btn-ghost p-3 lg:hidden"
-          >
-            <FontAwesomeIcon icon={faBars} />
           </button>
         </div>
       </div>
@@ -274,8 +386,8 @@ const Header = () => {
         onClick={toggleDrawer}
       >
         <div
-          className={`fixed top-0 right-0 h-full bg-base-300 w-80 transition-transform duration-300 transform ${
-            isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          className={`fixed top-0 left-0 h-full bg-base-300 w-80 transition-transform duration-300 transform ${
+            isDrawerOpen ? "-translate-x-0" : "-translate-x-full"
           } overflow-y-auto`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -293,7 +405,7 @@ const Header = () => {
       <ProfileDrawer
         isOpen={isLeftProfileOpen}
         onClose={() => setIsLeftProfileOpen(false)}
-        direction="left"
+        direction="right"
         session={session}
       />
 

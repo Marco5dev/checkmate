@@ -15,7 +15,7 @@ export default async function RootLayout({ children, params }) {
   const dir = params.locale === "ar" ? "rtl" : "ltr";
   const session = await getServerSession();
   return (
-    <html lang={params.locale} dir={dir}>
+    <html lang={params.locale} dir={dir} data-theme="dark">
       <head>
         {/* Title */}
         <title>Khedmety</title>
@@ -88,6 +88,14 @@ export default async function RootLayout({ children, params }) {
           content="black-translucent"
         />
         <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* Add KaTeX CSS */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+          integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={poppins.className}>
         <AuthProvider session={session}>

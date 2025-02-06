@@ -52,6 +52,11 @@ export async function PATCH(request) {
     const data = await request.json();
     const { taskId, ...updateData } = data;
 
+    // Handle empty folderId by setting it to null
+    if (updateData.folderId === "") {
+      updateData.folderId = null;
+    }
+
     const task = await Task.findOneAndUpdate(
       { _id: taskId, userId: session.user.id },
       updateData,
