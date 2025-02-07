@@ -45,6 +45,7 @@ export default function TasksPage() {
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
   const [taskToDelete, setTaskToDelete] = useState(null); // Add this new state
   const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false); // Add new state for loading
 
   const isTaskDueToday = (taskDate) => {
     const today = new Date();
@@ -149,6 +150,7 @@ export default function TasksPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsAddingTask(true);
     try {
       const taskData = {
         ...newTask,
@@ -170,12 +172,15 @@ export default function TasksPage() {
           dueDate: new Date().toISOString().split("T")[0],
           folderId: "",
         });
+        // setIsNewTaskModalOpen(false);
       } else {
         const data = await response.json();
         toast.error(data.error || "Failed to create task");
       }
     } catch (error) {
       toast.error("Failed to create task");
+    } finally {
+      setIsAddingTask(false);
     }
   };
 
@@ -377,7 +382,9 @@ export default function TasksPage() {
         {!selectedFolder && (
           <select
             value={newTask.folderId}
-            onChange={(e) => setNewTask({ ...newTask, folderId: e.target.value })}
+            onChange={(e) =>
+              setNewTask({ ...newTask, folderId: e.target.value })
+            }
             className="select select-bordered w-full"
           >
             <option value="">No Folder</option>
@@ -390,7 +397,9 @@ export default function TasksPage() {
         )}
         <textarea
           value={newTask.description}
-          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+          onChange={(e) =>
+            setNewTask({ ...newTask, description: e.target.value })
+          }
           placeholder="Task description (optional)"
           className="textarea textarea-bordered w-full"
           rows={3}
@@ -540,7 +549,7 @@ export default function TasksPage() {
   const renderTasksList = (tasks) => {
     // Apply today filter if enabled
     const filteredTasks = showTodayOnly
-      ? tasks.filter(task => isTaskDueToday(task.dueDate))
+      ? tasks.filter((task) => isTaskDueToday(task.dueDate))
       : tasks;
 
     const uncompletedTasks = filteredTasks.filter((task) => !task.done);
@@ -1003,7 +1012,7 @@ export default function TasksPage() {
           {/* Folders Sidebar - Only visible on md and larger screens */}
           <div className="hidden lg:flex bg-base-300 p-4 rounded-lg md:w-1/4 flex-col">
             <h2 className="text-xl font-bold mb-4">Folders</h2>
-            
+
             {/* Make this div scrollable */}
             <div className="flex-1 overflow-y-auto mb-4">
               {renderFoldersList()}
@@ -1029,12 +1038,17 @@ export default function TasksPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowTodayOnly(!showTodayOnly)}
-                  className={`btn btn-sm ${showTodayOnly ? 'btn-primary' : 'btn-neutral'}`}
+                  className={`btn btn-sm ${
+                    showTodayOnly ? "btn-primary" : "btn-neutral"
+                  }`}
                 >
                   Today
                   {showTodayOnly && (
                     <div className="badge badge-secondary badge-sm ml-2">
-                      {tasks.filter(task => isTaskDueToday(task.dueDate)).length}
+                      {
+                        tasks.filter((task) => isTaskDueToday(task.dueDate))
+                          .length
+                      }
                     </div>
                   )}
                 </button>
@@ -1140,11 +1154,80 @@ export default function TasksPage() {
                 <button
                   onClick={() => setIsNewTaskModalOpen(false)}
                   className="btn btn-ghost btn-sm btn-circle"
+                  disabled={isAddingTask}
                 >
                   <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
                 </button>
               </div>
-              {renderTaskForm(true)}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  value={newTask.title}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, title: e.target.value })
+                  }
+                  placeholder="Task title"
+                  className="input input-bordered w-full"
+                  required
+                  disabled={isAddingTask}
+                />
+                <input
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, dueDate: e.target.value })
+                  }
+                  className="input input-bordered w-full"
+                  required
+                  disabled={isAddingTask}
+                />
+                {!selectedFolder && (
+                  <select
+                    value={newTask.folderId}
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, folderId: e.target.value })
+                    }
+                    className="select select-bordered w-full"
+                    disabled={isAddingTask}
+                  >
+                    <option value="">No Folder</option>
+                    {folders.map((folder) => (
+                      <option key={folder._id} value={folder._id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <textarea
+                  value={newTask.description}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, description: e.target.value })
+                  }
+                  placeholder="Task description (optional)"
+                  className="textarea textarea-bordered w-full"
+                  rows={3}
+                  disabled={isAddingTask}
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsNewTaskModalOpen(false)}
+                    className="btn btn-ghost"
+                    disabled={isAddingTask}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`btn btn-primary ${
+                      isAddingTask ? "loading" : ""
+                    }`}
+                    disabled={isAddingTask}
+                  >
+                    {isAddingTask ? "Adding..." : "Add Task"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -1220,8 +1303,8 @@ export default function TasksPage() {
             <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-md">
               <h3 className="text-lg font-bold mb-4">Delete Task</h3>
               <p className="mb-6">
-                Are you sure you want to delete "{taskToDelete.title}"? This action cannot
-                be undone.
+                Are you sure you want to delete "{taskToDelete.title}"? This
+                action cannot be undone.
               </p>
               <div className="flex justify-end gap-2">
                 <button

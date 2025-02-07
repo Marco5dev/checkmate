@@ -1,5 +1,8 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -24,6 +27,19 @@ import ImageGallery from "@/components/ImageGallery";
 import { useInView } from "react-intersection-observer";
 
 export default function Main() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (status !== "loading" && session) {
+      router.push("/home");
+    }
+  }, [session, status, router]);
+  
+  if (status === "loading") {
+    return null; // or return a loading spinner
+  }
+
   const handleGithubSignIn = async () => {
     await signIn("github", { callbackUrl: "/home" });
   };
