@@ -37,6 +37,6 @@ export const config = {
     "/profile/:path*",
     "/api/auth/callback/github",
     // Exclude public assets and auth routes from protection
-    "/((?!api|login|register|_next/static|_next/image|favicon.ico|wallpapers|previews|og|$).*)",
+    "/((?!api|login|register|_next/static|_next/image|favicon.ico|wallpapers|previews|fonts|og|$).*)",
   ],
 };

@@ -2,7 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove all @font-face declarations since we're using Next.js font optimization */
+@layer base {
+  @font-face {
+    font-family: 'EduAUVICWANTPre';
+    src: url('/Fonts/Edu_font/EduAUVICWANTPre-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'EduAUVICWANTPre';
+    src: url('/Fonts/Edu_font/EduAUVICWANTPre-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'EduAUVICWANTPre';
+    src: url('/Fonts/Edu_font/EduAUVICWANTPre-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'EduAUVICWANTPre';
+    src: url('/Fonts/Edu_font/EduAUVICWANTPre-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Merriweather';
+    src: url('/Fonts/Merriweather/Merriweather-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Merriweather';
+    src: url('/Fonts/Merriweather/Merriweather-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+  }
+}
 
 /* From Uiverse.io by mahiatlinux */
 .login-container {

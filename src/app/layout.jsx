@@ -1,5 +1,4 @@
 import { Poppins } from "next/font/google";
-import localFont from 'next/font/local';
 import "./globals.css";
 import { getServerSession } from "next-auth";
 import AuthProvider from "@/utils/SessionsProvider";
@@ -15,58 +14,6 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
-});
-
-const eduFont = localFont({
-  src: [
-    {
-      path: '../public/fonts/Edu_font/EduAUVICWANTPre-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Edu_font/EduAUVICWANTPre-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Edu_font/EduAUVICWANTPre-SemiBold.ttf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Edu_font/EduAUVICWANTPre-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-edu',
-});
-
-const merriweather = localFont({
-  src: [
-    {
-      path: '../public/fonts/Merriweather/Merriweather-Light.ttf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Merriweather/Merriweather-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Merriweather/Merriweather-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/Merriweather/Merriweather-Black.ttf',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-merriweather',
 });
 
 export const metadata = {
@@ -126,7 +73,7 @@ export default async function RootLayout({ children, params }) {
   const dir = params.locale === "ar" ? "rtl" : "ltr";
   const session = await getServerSession();
   return (
-    <html lang={params.locale} dir={dir} data-theme="dark" className={`${eduFont.variable} ${merriweather.variable}`}>
+    <html lang={params.locale} dir={dir} data-theme="dark">
       <head>
         <link rel="icon" href="/logo.png" />
         <link rel="apple-touch-icon" href="/logo.png" />

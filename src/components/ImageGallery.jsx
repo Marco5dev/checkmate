@@ -30,7 +30,7 @@ export default function ImageGallery() {
   }, []);
 
   return (
-    <div className="relative w-full h-[300px] perspective-1000">
+    <div className="relative w-full h-[300px] perspective-1000 md:block hidden">
       <div className="relative w-full h-full">
         {images.map((image, index) => (
           <div
