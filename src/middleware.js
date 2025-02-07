@@ -14,12 +14,18 @@ export default withAuth(
       };
     }
 
-    // Modify response headers if needed
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ req, token }) => {
+        // Allow public access to wallpapers
+        if (req?.nextUrl?.pathname.startsWith('/wallpapers/')) {
+          return true;
+        }
+        // Require authentication for all other routes
+        return !!token;
+      },
     },
   }
 );
@@ -30,6 +36,7 @@ export const config = {
     "/dashboard/:path*",
     "/profile/:path*",
     "/api/auth/callback/github",
-    "/((?!api|login|register|_next/static|_next/image|favicon.ico).*)",
+    // Exclude public assets and auth routes from protection
+    "/((?!api|login|register|_next/static|_next/image|favicon.ico|wallpapers).*)",
   ],
 };

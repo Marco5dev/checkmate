@@ -1,1 +1,34 @@
 remove the register and login with email and password make it only with github also remove the set password thing and email verification and changing the email the user can only change his username and his name add that the user can add a discription for him self and remove the connections thing 
+
+
+
+
+
+
+
+
+
+
+
+
+first of all i want that flow thing with discard or save in the settings to be like the in in the profile and i told you to fix the list view to be scrollable 
+
+i am talking about that part i want it to be scrolable
+```jsx
+<div className="space-y-4 bg-base-300 p-4 rounded-lg overflow-auto">
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <LoadingTaskCard key={i} />
+                  ))}
+                </div>
+              ) : (
+                renderTasksList(
+                  tasks.filter(
+                    (task) =>
+                      !selectedFolder || task.folderId === selectedFolder._id
+                  )
+                )
+              )}
+            </div>
+```

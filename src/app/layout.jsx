@@ -3,7 +3,10 @@ import "./globals.css";
 import { getServerSession } from "next-auth";
 import AuthProvider from "@/utils/SessionsProvider";
 import Header from "@/components/Header";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
+import { Suspense } from "react";
+import LoadingScreen from "@/components/LoadingScreen";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -96,12 +99,19 @@ export default async function RootLayout({ children, params }) {
           integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn"
           crossOrigin="anonymous"
         />
+        <style>{`
+          :root {
+            --wallpaper: url('/wallpapers/login.png');
+          }
+        `}</style>
       </head>
       <body className={poppins.className}>
         <AuthProvider session={session}>
-          <Header />
-          {children}
-          <Toaster position="bottom-center" />
+          <SettingsProvider>
+            <Header />
+            {children}
+            <Toaster position="bottom-center" />
+          </SettingsProvider>
         </AuthProvider>
       </body>
     </html>

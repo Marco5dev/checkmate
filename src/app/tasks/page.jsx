@@ -14,9 +14,7 @@ import {
   faXmark,
   faAngleDown,
   faAngleRight,
-  faPlus,
-  faPencilAlt,
-  faTrashAlt,
+  faPlus, // Add to imports
 } from "@fortawesome/free-solid-svg-icons";
 import LoadingTaskCard from "@/components/loadings/LoadingTaskCard";
 import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
@@ -39,10 +37,10 @@ export default function TasksPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState(new Set());
-  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false); // Add new state for modals
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
-  const [moveTaskModal, setMoveTaskModal] = useState(null);
+  const [moveTaskModal, setMoveTaskModal] = useState(null); // Add new state for move task modal
   const [isLoading, setIsLoading] = useState(true);
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
 
@@ -50,6 +48,7 @@ export default function TasksPage() {
     fetchTasks();
     fetchFolders();
 
+    // Listen for new folder modal event
     const handleNewFolder = () => setIsNewFolderModalOpen(true);
     const handleDrawerToggle = (e) => {
       if (e.detail?.open !== undefined) {
@@ -76,6 +75,7 @@ export default function TasksPage() {
   }, []);
 
   useEffect(() => {
+    // Update folders in drawer when they change
     if (mobileDrawerOpen) {
       window.dispatchEvent(
         new CustomEvent("updateFoldersList", {
@@ -103,7 +103,7 @@ export default function TasksPage() {
     try {
       const response = await fetch("/api/folders");
       const data = await response.json();
-      console.log("Fetched folders:", data);
+      console.log("Fetched folders:", data); // Debug log
       setFolders(data);
     } catch (error) {
       toast.error("Failed to fetch folders");
@@ -411,7 +411,7 @@ export default function TasksPage() {
     }
 
     return (
-      <ul className="space-y-2 h-full">
+      <ul className="space-y-2">
         <li key="all-tasks">
           <div
             className={`flex items-center gap-2 p-2 hover:bg-base-400 rounded ${
@@ -425,7 +425,7 @@ export default function TasksPage() {
               }`}
             >
               <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
-              All Folders
+              All Tasks
             </div>
           </div>
         </li>
@@ -448,38 +448,82 @@ export default function TasksPage() {
                   }`}
                 >
                   <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
-                  {folder.name}
-                </div>
-                <div className="dropdown dropdown-end">
-                  <label tabIndex={0} className="btn btn-ghost btn-sm">
-                    <FontAwesomeIcon icon={faEllipsisVertical} />
-                  </label>
-                  <ul
-                    tabIndex={0}
-                    className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
-                  >
-                    <li>
-                      <button
-                        onClick={() =>
-                          setEditingFolder({
-                            id: folder._id,
-                            name: folder.name,
-                          })
+                  {editingFolder?.id === folder._id ? (
+                    <input
+                      type="text"
+                      value={editingFolder.name}
+                      onChange={(e) =>
+                        setEditingFolder({
+                          ...editingFolder,
+                          name: e.target.value,
+                        })
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          renameFolder(folder._id, editingFolder.name);
+                        } else if (e.key === "Escape") {
+                          setEditingFolder(null);
                         }
-                      >
-                        <FontAwesomeIcon icon={faPencilAlt} className="mr-2" /> Rename
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => setShowDeleteModal(folder)}
-                        className="text-error"
-                      >
-                        <FontAwesomeIcon icon={faTrashAlt} className="mr-2" /> Delete
-                      </button>
-                    </li>
-                  </ul>
+                      }}
+                      className="input input-bordered input-sm flex-grow"
+                      autoFocus
+                    />
+                  ) : (
+                    folder.name
+                  )}
                 </div>
+                {editingFolder?.id === folder._id ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        renameFolder(folder._id, editingFolder.name)
+                      }
+                      className="btn btn-ghost btn-sm"
+                    >
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        className="text-success"
+                      />
+                    </button>
+                    <button
+                      onClick={() => setEditingFolder(null)}
+                      className="btn btn-ghost btn-sm"
+                    >
+                      <FontAwesomeIcon icon={faXmark} className="text-error" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="dropdown dropdown-end">
+                    <label tabIndex={0} className="btn btn-ghost btn-sm">
+                      <FontAwesomeIcon icon={faEllipsisVertical} />
+                    </label>
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
+                    >
+                      <li>
+                        <button
+                          onClick={() =>
+                            setEditingFolder({
+                              id: folder._id,
+                              name: folder.name,
+                            })
+                          }
+                        >
+                          Rename
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => setShowDeleteModal(folder)}
+                          className="text-error"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </li>
           ))
@@ -494,6 +538,7 @@ export default function TasksPage() {
 
     return (
       <>
+        {/* Uncompleted Tasks */}
         <div className="mb-8">
           <h3 className="text-lg font-bold mb-4">Tasks To Do</h3>
           <div className="space-y-4">
@@ -609,7 +654,9 @@ export default function TasksPage() {
                             )}
                           </div>
                         </div>
+                        {/* Task Actions */}
                         <div className="flex gap-2">
+                          {/* Desktop Actions */}
                           <div className="hidden lg:flex gap-2">
                             <button
                               onClick={() =>
@@ -647,6 +694,7 @@ export default function TasksPage() {
                             </button>
                           </div>
 
+                          {/* Mobile Actions */}
                           <div className="lg:hidden dropdown dropdown-end">
                             <label
                               tabIndex={0}
@@ -707,6 +755,7 @@ export default function TasksPage() {
           </div>
         </div>
 
+        {/* Completed Tasks */}
         <div className="pt-8 border-t border-base-200">
           <h3 className="text-lg font-bold mb-4">Completed Tasks</h3>
           <div className="space-y-4 opacity-60">
@@ -824,7 +873,9 @@ export default function TasksPage() {
                             )}
                           </div>
                         </div>
+                        {/* Task Actions */}
                         <div className="flex gap-2">
+                          {/* Desktop Actions */}
                           <div className="hidden lg:flex gap-2">
                             <button
                               onClick={() =>
@@ -862,6 +913,7 @@ export default function TasksPage() {
                             </button>
                           </div>
 
+                          {/* Mobile Actions */}
                           <div className="lg:hidden dropdown dropdown-end">
                             <label
                               tabIndex={0}
@@ -927,23 +979,25 @@ export default function TasksPage() {
 
   return (
     <div className="flex justify-center h-screen login-bg bg-cover bg-no-repeat bg-center">
-      <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center content-center">
+      <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center contect-center">
         <div className="flex flex-col md:flex-row w-full h-full gap-6">
-          <div className="hidden lg:block bg-base-300 p-4 rounded-lg w-1/4">
-            <h2 className="text-xl font-bold mb-4">Folders</h2>
-            <div className="flex-1 overflow-auto h-5/6">
-              {renderFoldersList()}
+          {/* Folders Sidebar - Only visible on md and larger screens */}
+          <div className="hidden lg:block bg-base-300 p-4 rounded-lg md:w-1/4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Folders</h2>
+              <button
+                onClick={() => setIsNewFolderModalOpen(true)}
+                className="btn btn-primary btn-sm"
+              >
+                New Folder
+              </button>
             </div>
-            <button
-              onClick={() => setIsNewFolderModalOpen(true)}
-              className="btn btn-primary mt-4 w-full"
-            >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              New Folder
-            </button>
+            {renderFoldersList()}
           </div>
 
+          {/* Tasks List */}
           <div className="flex-1">
+            {/* Mobile Add Task Button */}
             <div className="lg:hidden mb-6">
               <button
                 onClick={() => setIsNewTaskModalOpen(true)}
@@ -953,8 +1007,10 @@ export default function TasksPage() {
               </button>
             </div>
 
+            {/* Desktop Task Form */}
             <div className="hidden lg:block">{renderTaskForm()}</div>
 
+            {/* Tasks List */}
             <div className="space-y-4 bg-base-300 p-4 rounded-lg">
               {isLoading ? (
                 <div className="space-y-4">
@@ -974,6 +1030,7 @@ export default function TasksPage() {
           </div>
         </div>
 
+        {/* New Folder Modal */}
         {isNewFolderModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-base-200 p-6 rounded-lg w-96">
@@ -1004,6 +1061,7 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* Delete Folder Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-base-200 p-6 rounded-lg w-96">
@@ -1035,6 +1093,8 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* Mobile Modals */}
+        {/* New Task Modal */}
         {isNewTaskModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-lg">
@@ -1052,14 +1112,17 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* Edit Task Modal */}
         {isEditTaskModalOpen && editingTask && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-lg">
               <h3 className="text-lg font-bold mb-4">Edit Task</h3>
+              {/* ...existing edit task form... */}
             </div>
           </div>
         )}
 
+        {/* Move Task Modal */}
         {moveTaskModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-lg">

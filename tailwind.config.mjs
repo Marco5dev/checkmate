@@ -8,11 +8,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        edu: ['EduAUVICWANTPre', 'sans-serif'],
-        merriweather: ['Merriweather', 'serif'],
+        edu: ["EduAUVICWANTPre", "sans-serif"],
+        merriweather: ["Merriweather", "serif"],
       },
       backgroundImage: {
-        "bg-img": "url('/wallpapers/wall.png')", // Make sure this matches your image path exactly
+        "login-bg": "var(--wallpaper, url('/wallpapers/login.png'))",
       },
       colors: {
         background: "var(--background)",
@@ -74,6 +74,38 @@ export default {
           "--glass-reflex-opacity": "0.1",
         },
       },
+      "light",
+      "dark",
+      "cupcake",
+      "bumblebee",
+      "emerald",
+      "corporate",
+      "synthwave",
+      "retro",
+      "cyberpunk",
+      "valentine",
+      "halloween",
+      "garden",
+      "forest",
+      "aqua",
+      "lofi",
+      "pastel",
+      "fantasy",
+      "wireframe",
+      "black",
+      "luxury",
+      "dracula",
+      "cmyk",
+      "autumn",
+      "business",
+      "acid",
+      "lemonade",
+      "night",
+      "coffee",
+      "winter",
+      "dim",
+      "nord",
+      "sunset",
     ], // false: only light + dark | true: all themes | array: specific themes like this ["light", "dark", "cupcake"]
     darkTheme: "custom", // name of one of the included themes for dark mode
     base: true, // applies background color and foreground color for root element by default

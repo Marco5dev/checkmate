@@ -465,7 +465,7 @@ export default function NotesClient({ session }) {
   return (
     <div className="w-[95%] h-5/6 mt-24 flex">
       {/* Hide sidebar on mobile */}
-      <div className="hidden lg:block w-1/4 bg-base-300 p-4 rounded-lg mr-4 flex flex-col">
+      <div className="hidden lg:flex w-1/4 bg-base-300 p-4 rounded-lg mr-4 flex-col">
         <h2 className="text-xl font-bold mb-4">Folders</h2>
         <div className="flex-1 overflow-auto h-5/6">
           {isFoldersLoading ? (

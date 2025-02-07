@@ -301,7 +301,7 @@ export default function HomeClient({ session, greeting }) {
   }, []);
 
   return (
-    <main className="login-bg bg-cover bg-no-repeat bg-center flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
+    <main className="login-bg bg-bg-img bg-cover bg-no-repeat bg-center flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)]">
       <div className="flex flex-col gap-5 lg:gap-10 py-5 w-full h-5/6 items-center">
         {/* Good morning section */}
         <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
