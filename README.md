@@ -32,44 +32,162 @@ The application leverages several modern web technologies:
 ### Project Structure
 
 ```
-todo-list-app-cs50x/
-├── app/                  # Next.js app directory
-│   ├── api/              # API routes
-│   │   └── tasks/        # Task-related API endpoints
-│   ├── layout.tsx        # Root layout component
-│   ├── page.tsx          # Home page component
-│   └── globals.css       # Global styles
-├── components/           # Reusable components
-│   ├── TaskList/         # Task list component
-│   │   ├── index.tsx
-│   │   └── styles.module.css
-│   ├── TaskForm/         # Task creation form
-│   │   ├── index.tsx
-│   │   └── styles.module.css
-│   ├── TaskItem/         # Individual task component
-│   │   ├── index.tsx
-│   │   └── styles.module.css
-│   └── ui/               # UI components
-│       ├── Button.tsx
-│       └── Input.tsx
-├── lib/                  # Utility functions and helpers
-│   ├── types.ts          # TypeScript types/interfaces
-│   └── utils.ts          # Helper functions
-├── public/               # Static assets
-│   ├── images/
-│   │   └── logo.png
-│   ├── favicon.ico
-│   └── robots.txt
-├── styles/               # Global styles
-│   └── globals.css
-├── .eslintrc.json        # ESLint configuration
-├── .gitignore            # Git ignore rules
-├── next.config.js        # Next.js configuration
-├── package.json          # Project dependencies
-├── postcss.config.js     # PostCSS configuration
-├── README.md             # Project documentation
-├── tailwind.config.js    # Tailwind CSS configuration
-└── tsconfig.json         # TypeScript configuration
+project-root/
+├── .env                      # Environment variables for the project
+├── .gitignore                # Specifies files for Git to ignore
+├── bun.lock                  # Dependency lock file for Bun
+├── jsconfig.json             # JavaScript project configuration
+├── next.config.mjs           # Next.js configuration file
+├── package.json              # Project dependencies and scripts
+├── postcss.config.mjs        # PostCSS configuration file
+├── README.md                 # Project documentation
+├── tailwind.config.mjs       # Tailwind CSS configuration
+│
+├── public/                   # Static assets
+│   ├── favicon.ico           # Website favicon
+│   ├── logo.png              # Project logo
+│   ├── manifest.json         # Web app manifest
+│   ├── Fonts/                # Font files directory
+│   │   ├── Edu_font/         # Edu font files
+│   │   │   ├── EduAUVICWANTPre-Bold.ttf
+│   │   │   ├── EduAUVICWANTPre-Medium.ttf
+│   │   │   ├── EduAUVICWANTPre-Regular.ttf
+│   │   │   ├── EduAUVICWANTPre-SemiBold.ttf
+│   │   │   └── EduAUVICWANTPre-VariableFont_wght.ttf
+│   │   └── Merriweather/     # Merriweather font files
+│   │       ├── Merriweather-Black.ttf
+│   │       ├── Merriweather-BlackItalic.ttf
+│   │       ├── Merriweather-Bold.ttf
+│   │       ├── Merriweather-BoldItalic.ttf
+│   │       ├── Merriweather-Italic.ttf
+│   │       ├── Merriweather-Light.ttf
+│   │       ├── Merriweather-LightItalic.ttf
+│   │       └── Merriweather-Regular.ttf
+│   ├── previews/             # Preview images
+│   │   ├── preview1.png
+│   │   ├── preview2.png
+│   │   ├── preview3.png
+│   │   └── theme-preview.png
+│   └── wallpapers/           # Wallpapers for the app
+│       ├── Fantasy-Mountain.png
+│       ├── Fog-Forest-Everforest.png
+│       ├── Lake.png
+│       ├── Lofi - Chill Room2.jpeg
+│       ├── Lofi-Cafe1.png
+│       ├── Lofi-Cafe2.png
+│       ├── Lofi-Desktop-Man-Studying.png
+│       ├── space.jpg
+│       ├── Street.png
+│       ├── Under_Starlit_Sky.png
+│       ├── Video Game - The Blackstreets.jpeg
+│       └── Wall.png
+│
+└── src/                      # Source code directory
+    ├── middleware.js         # Middleware functions
+    ├── app/                  # Next.js app directory
+    │   ├── favicon.ico       # Favicon for the app
+    │   ├── globals.css       # Global styles
+    │   ├── layout.jsx        # Root layout component
+    │   ├── page.jsx          # Home page component
+    │   ├── sitemap.js        # Sitemap generator
+    │   ├── actions/          # User-related actions
+    │   │   └── user.js       # User action logic
+    │   ├── api/              # API routes
+    │   │   ├── auth/         # Authentication routes
+    │   │   │   ├── logout/   # Logout endpoint
+    │   │   │   │   └── route.js
+    │   │   │   └── [...nextauth]/ # NextAuth route
+    │   │   │       └── route.js
+    │   │   ├── folders/      # Folder-related API
+    │   │   │   └── route.js
+    │   │   ├── notes/        # Notes-related API
+    │   │   │   ├── route.js
+    │   │   │   └── [id]/     # API for specific notes
+    │   │   │       └── route.js
+    │   │   ├── notes-folders/ # Notes and folder combination API
+    │   │   │   ├── route.js
+    │   │   │   └── [id]/
+    │   │   │       └── route.js
+    │   │   ├── og/           # Open Graph image generation
+    │   │   │   └── route.jsx
+    │   │   ├── profile/      # User profile API
+    │   │   │   └── avatar/
+    │   │   │       └── route.js
+    │   │   ├── quotes/       # Quotes API
+    │   │   │   └── route.js
+    │   │   ├── tags/         # Tags API
+    │   │   │   ├── route.js
+    │   │   │   └── [id]/
+    │   │   │       └── route.js
+    │   │   ├── tasks/        # Task API
+    │   │   │   └── route.js
+    │   │   ├── upload/       # File upload API
+    │   │   │   └── route.js
+    │   │   ├── user-settings/ # User settings API
+    │   │   │   └── route.js
+    │   │   └── wallpapers/   # Wallpaper-related API
+    │   │       └── route.js
+    │   ├── home/             # Home page directory
+    │   │   └── page.jsx
+    │   ├── login/            # Login page directory
+    │   │   ├── form.jsx
+    │   │   └── page.jsx
+    │   ├── notes/            # Notes page
+    │   │   └── page.jsx
+    │   ├── privacy/          # Privacy policy page
+    │   │   └── page.jsx
+    │   ├── profile/          # User profile page
+    │   │   └── page.jsx
+    │   ├── settings/         # User settings page
+    │   │   └── page.jsx
+    │   ├── tasks/            # Task management page
+    │   │   └── page.jsx
+    │   └── terms/            # Terms and conditions page
+    │       └── page.jsx
+    ├── components/           # Reusable components
+    │   ├── Editor.jsx        # Rich text editor component
+    │   ├── Header.jsx        # Header component
+    │   ├── HeaderWrapper.jsx # Header wrapper component
+    │   ├── HomeClient.jsx    # Client-side Home component
+    │   ├── ImageCropModal.jsx # Image crop modal
+    │   ├── ImageGallery.jsx  # Image gallery component
+    │   ├── LegalPageLayout.jsx # Layout for legal pages
+    │   ├── LoadingScreen.jsx # Loading screen component
+    │   ├── LogoutButton.jsx  # Logout button
+    │   ├── NotesClient.jsx   # Notes client component
+    │   ├── PasswordModal.jsx # Password modal
+    │   ├── ProfileDrawer.jsx # Profile drawer component
+    │   ├── ProfileEditor.jsx # Profile editor
+    │   ├── SettingsClient.jsx # Settings client component
+    │   ├── TasksClient.jsx   # Task client component
+    │   └── loadings/         # Loading skeleton components
+    │       ├── LoadingAvatar.jsx
+    │       ├── LoadingFolderItem.jsx
+    │       ├── LoadingHeader.jsx
+    │       └── LoadingTaskCard.jsx
+    ├── constants/            # App constants and configurations
+    │   └── legalContent.js
+    ├── contexts/             # React context providers
+    │   └── SettingsContext.jsx
+    ├── lib/                  # Utility functions and helpers
+    │   └── authOptions.js
+    ├── models/               # Database models
+    │   ├── DailyQuote.js
+    │   ├── Folder.js
+    │   ├── Notes.js
+    │   ├── NotesFolder.js
+    │   ├── Tags.js
+    │   ├── Task.js
+    │   ├── User.js
+    │   └── UserSettings.js
+    ├── svg/                  # SVG components
+    │   ├── apple.jsx
+    │   └── google.jsx
+    └── utils/                # Utility functions
+        ├── emailService.js
+        ├── getUserData.js
+        ├── mongodb.js
+        └── SessionsProvider.jsx
 ```
 
 ### How to Run
