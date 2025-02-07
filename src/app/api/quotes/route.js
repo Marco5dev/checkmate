@@ -20,7 +20,7 @@ export async function GET() {
 
     // If no quote exists for today, fetch a new one
     if (!quote) {
-      const apiKey = process.env['X-Api-Key'];
+      const apiKey = process.env.X_Api_Key;
       const response = await fetch('https://api.api-ninjas.com/v1/quotes', {
         headers: {
           'X-Api-Key': apiKey
