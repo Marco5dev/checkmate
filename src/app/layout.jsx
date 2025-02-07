@@ -7,8 +7,8 @@ import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import LoadingScreen from "@/components/LoadingScreen";
 import { SettingsProvider } from "@/contexts/SettingsContext";
-import { Analytics } from '@vercel/analytics/next';
-
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -168,10 +168,11 @@ export default async function RootLayout({ children, params }) {
           <SettingsProvider>
             <HeaderWrapper />
             {children}
-            <Analytics />
             <Toaster position="bottom-center" />
           </SettingsProvider>
         </AuthProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
