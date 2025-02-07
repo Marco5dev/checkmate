@@ -32,11 +32,11 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/",
+    "/home",
     "/dashboard/:path*",
     "/profile/:path*",
     "/api/auth/callback/github",
     // Exclude public assets and auth routes from protection
-    "/((?!api|login|register|_next/static|_next/image|favicon.ico|wallpapers).*)",
+    "/((?!api|login|register|_next/static|_next/image|favicon.ico|wallpapers|og|$).*)",
   ],
 };

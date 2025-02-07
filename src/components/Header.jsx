@@ -10,6 +10,8 @@ import {
   faUser,
   faFolderOpen,
   faEllipsisVertical,
+  faPencilAlt,
+  faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { faX } from "@fortawesome/free-solid-svg-icons/faX";
 import ProfileDrawer from "./ProfileDrawer";
@@ -110,7 +112,7 @@ const Header = () => {
     <div className="flex flex-col h-full pt-16">
       <ul className="menu menu-lg w-full">
         <li>
-          <Link href="/" onClick={toggleDrawer}>
+          <Link href="/home" onClick={toggleDrawer}>
             Home
           </Link>
         </li>
@@ -235,7 +237,9 @@ const Header = () => {
             <button
               onClick={() => {
                 // Use different event name for notes folders
-                window.dispatchEvent(new CustomEvent("openNotesNewFolderModal"));
+                window.dispatchEvent(
+                  new CustomEvent("openNotesNewFolderModal")
+                );
                 toggleDrawer();
               }}
               className="btn btn-primary btn-sm w-full mb-4"
@@ -261,70 +265,77 @@ const Header = () => {
               <span>All Notes</span>
             </button>
 
-            {isFoldersLoading ? (
-              [...Array(4)].map((_, i) => <LoadingFolderItem key={i} />)
-            ) : (
-              notesDrawerFolders.map((folder) => (
-                <div key={folder._id} className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent("selectNotesFolder", {
-                          detail: { folder },
-                        })
-                      );
-                      toggleDrawer();
-                    }}
-                    className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
-                      notesSelectedFolder?._id === folder._id
-                        ? "bg-base-300 text-primary font-bold"
-                        : ""
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faFolderOpen} className="w-4 h-4" />
-                    <span>{folder.name}</span>
-                  </button>
-                  <div className="dropdown dropdown-end">
-                    <label tabIndex={0} className="btn btn-ghost btn-sm">
-                      <FontAwesomeIcon icon={faEllipsisVertical} />
-                    </label>
-                    <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
-                      <li>
-                        <button
-                          onClick={() => {
-                            window.dispatchEvent(
-                              new CustomEvent("editNotesFolder", {
-                                detail: { folder },
-                              })
-                            );
-                            toggleDrawer();
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faPencilAlt} className="mr-2" />
-                          Rename
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          onClick={() => {
-                            window.dispatchEvent(
-                              new CustomEvent("deleteNotesFolder", {
-                                detail: { folder },
-                              })
-                            );
-                            toggleDrawer();
-                          }}
-                          className="text-error"
-                        >
-                          <FontAwesomeIcon icon={faTrashAlt} className="mr-2" />
-                          Delete
-                        </button>
-                      </li>
-                    </ul>
+            {isFoldersLoading
+              ? [...Array(4)].map((_, i) => <LoadingFolderItem key={i} />)
+              : notesDrawerFolders.map((folder) => (
+                  <div key={folder._id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        window.dispatchEvent(
+                          new CustomEvent("selectNotesFolder", {
+                            detail: { folder },
+                          })
+                        );
+                        toggleDrawer();
+                      }}
+                      className={`flex flex-1 items-center gap-2 p-2 rounded hover:bg-base-300 ${
+                        notesSelectedFolder?._id === folder._id
+                          ? "bg-base-300 text-primary font-bold"
+                          : ""
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={faFolderOpen}
+                        className="w-4 h-4"
+                      />
+                      <span>{folder.name}</span>
+                    </button>
+                    <div className="dropdown dropdown-end">
+                      <label tabIndex={0} className="btn btn-ghost btn-sm">
+                        <FontAwesomeIcon icon={faEllipsisVertical} />
+                      </label>
+                      <ul className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                        <li>
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(
+                                new CustomEvent("editNotesFolder", {
+                                  detail: { folder },
+                                })
+                              );
+                              toggleDrawer();
+                            }}
+                          >
+                            <FontAwesomeIcon
+                              icon={faPencilAlt}
+                              className="mr-2"
+                            />
+                            Rename
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(
+                                new CustomEvent("deleteNotesFolder", {
+                                  detail: { folder },
+                                })
+                              );
+                              toggleDrawer();
+                            }}
+                            className="text-error"
+                          >
+                            <FontAwesomeIcon
+                              icon={faTrashAlt}
+                              className="mr-2"
+                            />
+                            Delete
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))}
           </div>
         </div>
       )}
@@ -354,7 +365,7 @@ const Header = () => {
         <div className="hidden lg:flex flex-none absolute left-1/2 transform -translate-x-1/2">
           <ul className="menu menu-horizontal px-1 gap-2">
             <li>
-              <Link href="/">Home</Link>
+              <Link href="/home">Home</Link>
             </li>
             <li>
               <Link href="/tasks">Tasks</Link>

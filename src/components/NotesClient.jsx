@@ -21,6 +21,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Editor from "@/components/Editor";
 import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
+import Masonry from "react-masonry-css";
 
 export default function NotesClient({ session }) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -56,15 +57,18 @@ export default function NotesClient({ session }) {
     };
 
     window.addEventListener("toggleMobileDrawer", handleDrawerToggle);
-    return () => window.removeEventListener("toggleMobileDrawer", handleDrawerToggle);
+    return () =>
+      window.removeEventListener("toggleMobileDrawer", handleDrawerToggle);
   }, []);
 
   useEffect(() => {
     // Update drawer folders when mobile drawer is open
     if (mobileDrawerOpen) {
-      window.dispatchEvent(new CustomEvent("updateNotesFoldersList", {
-        detail: { folders, selectedFolder }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("updateNotesFoldersList", {
+          detail: { folders, selectedFolder },
+        })
+      );
     }
   }, [folders, selectedFolder, mobileDrawerOpen]);
 
@@ -79,7 +83,8 @@ export default function NotesClient({ session }) {
     };
 
     window.addEventListener("openNotesNewFolderModal", handleNewFolder);
-    return () => window.removeEventListener("openNotesNewFolderModal", handleNewFolder);
+    return () =>
+      window.removeEventListener("openNotesNewFolderModal", handleNewFolder);
   }, []);
 
   useEffect(() => {
@@ -106,14 +111,14 @@ export default function NotesClient({ session }) {
       }
     };
 
-    window.addEventListener('selectNotesFolder', handleSelectFolder);
-    window.addEventListener('editNotesFolder', handleEditFolder);
-    window.addEventListener('deleteNotesFolder', handleDeleteFolder);
+    window.addEventListener("selectNotesFolder", handleSelectFolder);
+    window.addEventListener("editNotesFolder", handleEditFolder);
+    window.addEventListener("deleteNotesFolder", handleDeleteFolder);
 
     return () => {
-      window.removeEventListener('selectNotesFolder', handleSelectFolder);
-      window.removeEventListener('editNotesFolder', handleEditFolder);
-      window.removeEventListener('deleteNotesFolder', handleDeleteFolder);
+      window.removeEventListener("selectNotesFolder", handleSelectFolder);
+      window.removeEventListener("editNotesFolder", handleEditFolder);
+      window.removeEventListener("deleteNotesFolder", handleDeleteFolder);
     };
   }, []);
 
@@ -262,15 +267,35 @@ export default function NotesClient({ session }) {
     }
   };
 
-  const handleDeleteTag = async (tagId) => {
+  const handleDeleteTag = async (tagId, deleteNotes = false) => {
     try {
-      await fetch(`/api/tags/${tagId}`, { method: "DELETE" });
+      await fetch(`/api/tags/${tagId}?deleteNotes=${deleteNotes}`, {
+        method: "DELETE",
+      });
+
       setTags(tags.filter((tag) => tag._id !== tagId));
-      toast.success("Tag deleted successfully");
+
+      if (deleteNotes) {
+        // Remove notes that had this tag
+        setNotes(
+          notes.filter((note) => !note.tags?.some((tag) => tag._id === tagId))
+        );
+      } else {
+        // Keep notes but remove the deleted tag from them
+        setNotes(
+          notes.map((note) => ({
+            ...note,
+            tags: note.tags?.filter((tag) => tag._id !== tagId) || [],
+          }))
+        );
+      }
+
+      // Also remove from selected tags if present
+      setSelectedTags((prev) => prev.filter((id) => id !== tagId));
+      setShowDeleteTagModal(null);
     } catch (error) {
       toast.error("Failed to delete tag");
     }
-    setShowDeleteTagModal(null);
   };
 
   const handleCreateTag = async (e) => {
@@ -423,7 +448,7 @@ export default function NotesClient({ session }) {
   const filteredNotes = (notes || []).filter((note) => {
     // Add null check and ensure notes is an array
     if (!Array.isArray(notes)) return [];
-    
+
     // Filter by folder
     if (selectedFolder && note.folderId?._id !== selectedFolder._id) {
       return false;
@@ -463,251 +488,334 @@ export default function NotesClient({ session }) {
   };
 
   return (
-    <div className="w-[95%] h-5/6 mt-24 flex">
-      {/* Hide sidebar on mobile */}
-      <div className="hidden lg:flex w-1/4 bg-base-300 p-4 rounded-lg mr-4 flex-col">
-        <h2 className="text-xl font-bold mb-4">Folders</h2>
-        <div className="flex-1 overflow-auto h-5/6">
-          {isFoldersLoading ? (
-            <div className="space-y-2">
+    <div className="w-[95%] h-5/6 mt-24 flex flex-col gap-4">
+      {/* Tags Bar - Full Width */}
+      <div className="w-full bg-base-300 rounded-lg p-4 flex items-center">
+        <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-thin">
+          {isTagsLoading ? (
+            <div className="flex gap-2 w-full overflow-x-auto">
               {[...Array(4)].map((_, i) => (
-                <LoadingFolderItem key={i} />
-              ))}
-            </div>
-          ) : folders.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p className="mb-2">No folders created yet</p>
-              <p className="text-sm">
-                Create a folder to organize your notes
-              </p>
-            </div>
-          ) : (
-            <ul className="space-y-2 h-full">
-              <li key="all-notes">
-                <div
-                  className={`flex items-center gap-2 p-2 hover:bg-base-400 rounded ${
-                    !selectedFolder ? "bg-base-400" : ""
-                  }`}
-                  onClick={() => setSelectedFolder(null)}
-                >
-                  <div
-                    className={`cursor-pointer flex-grow flex items-center gap-2 ${
-                      !selectedFolder ? "text-primary font-bold" : ""
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faFolder} className="w-4 h-4" />
-                    All Notes
-                  </div>
+                <div key={i} className="animate-pulse flex-shrink-0">
+                  <div className="h-8 w-16 sm:w-24 bg-base-200 rounded-full"></div>
                 </div>
-              </li>
-              {folders.map((folder) => (
-                <li key={folder._id}>
-                  <div
-                    className={`flex items-center gap-2 p-2 hover:bg-base-400 rounded ${
-                      selectedFolder?._id === folder._id ? "bg-base-400" : ""
-                    }`}
-                  >
-                    <div
-                      onClick={() =>
-                        !editingFolder && setSelectedFolder(folder)
-                      }
-                      className={`cursor-pointer flex-grow flex items-center gap-2 ${
-                        selectedFolder?._id === folder._id
-                          ? "text-primary font-bold"
-                          : ""
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faFolder} className="w-4 h-4" />
-                      {folder.name}
-                    </div>
-                    <div className="dropdown dropdown-end">
-                      <label tabIndex={0} className="btn btn-ghost btn-sm">
-                        <FontAwesomeIcon icon={faEllipsisVertical} />
-                      </label>
-                      <ul
-                        tabIndex={0}
-                        className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
-                      >
-                        <li>
-                          <button
-                            onClick={() => {
-                              setEditingFolder(folder);
-                              setNewFolderName(folder.name);
-                              setIsEditFolderModalOpen(true);
-                            }}
-                          >
-                            <FontAwesomeIcon
-                              icon={faPencilAlt}
-                              className="mr-2"
-                            />{" "}
-                            Rename
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => setShowDeleteModal(folder)}
-                            className="text-error"
-                          >
-                            <FontAwesomeIcon
-                              icon={faTrashAlt}
-                              className="mr-2"
-                            />{" "}
-                            Delete
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </li>
               ))}
-            </ul>
+            </div>
+          ) : tags.length === 0 ? (
+            <p className="text-gray-500 text-sm">No tags created yet</p>
+          ) : (
+            (tags || []).map((tag) => {
+              const isSelected = selectedTags.includes(tag._id);
+              const textColorClass = isSelected
+                ? getTextColorForHex(tag.color)
+                : "text-gray-300";
+
+              return (
+                <button
+                  key={`tag-${tag._id}`}
+                  className={`btn btn-sm border-none ${textColorClass}`}
+                  onClick={() => toggleTag(tag._id)}
+                  style={{
+                    backgroundColor: isSelected ? tag.color : "transparent",
+                    borderColor: tag.color,
+                    ":hover": {
+                      backgroundColor: tag.color,
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTag} className="mr-1" />
+                  {tag.name}
+                </button>
+              );
+            })
           )}
         </div>
         <button
-          onClick={() => setIsNewFolderModalOpen(true)}
-          className="btn btn-primary mt-4 w-full"
+          className="btn btn-ghost btn-sm ml-4 shrink-0"
+          onClick={() => setIsTagsModalOpen(true)}
         >
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          New Folder
+          <FontAwesomeIcon icon={faPencil} />
         </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Updated Tags Bar with responsive loading state */}
-        <div className="bg-base-300 rounded-lg p-4 mb-4 flex items-center">
-          <div className="flex-1 flex items-center gap-2 overflow-x-auto">
-            {isTagsLoading ? (
-              <div className="flex gap-2 w-full overflow-x-auto">
+      {/* Main Content Area */}
+      <div className="flex flex-1 gap-4 min-h-0">
+        {/* Folders Sidebar - Hidden on mobile */}
+        <div className="hidden lg:flex w-1/4 min-w-[250px] flex-col bg-base-300 rounded-lg p-4">
+          <h2 className="text-xl font-bold mb-4">Folders</h2>
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {isFoldersLoading ? (
+              <div className="space-y-2">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="animate-pulse flex-shrink-0">
-                    <div className="h-8 w-16 sm:w-24 bg-base-200 rounded-full"></div>
-                  </div>
+                  <LoadingFolderItem key={i} />
                 ))}
               </div>
-            ) : tags.length === 0 ? (
-              <p className="text-gray-500 text-sm">No tags created yet</p>
+            ) : folders.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="mb-2">No folders created yet</p>
+                <p className="text-sm">
+                  Create a folder to organize your notes
+                </p>
+              </div>
             ) : (
-              (tags || []).map((tag) => {
-                const isSelected = selectedTags.includes(tag._id);
-                const textColorClass = isSelected
-                  ? getTextColorForHex(tag.color)
-                  : "text-gray-300";
-
-                return (
-                  <button
-                    key={`tag-${tag._id}`}
-                    className={`btn btn-sm border-none ${textColorClass}`}
-                    onClick={() => toggleTag(tag._id)}
-                    style={{
-                      backgroundColor: isSelected ? tag.color : "transparent",
-                      borderColor: tag.color,
-                      ":hover": {
-                        backgroundColor: tag.color,
-                        opacity: 0.8,
-                      },
-                    }}
+              <ul className="space-y-2 h-full">
+                <li key="all-notes">
+                  <div
+                    className={`flex items-center gap-2 p-2 hover:bg-base-400 rounded ${
+                      !selectedFolder ? "bg-base-400" : ""
+                    }`}
+                    onClick={() => setSelectedFolder(null)}
                   >
-                    <FontAwesomeIcon icon={faTag} className="mr-1" />
-                    {tag.name}
-                  </button>
-                );
-              })
+                    <div
+                      className={`cursor-pointer flex-grow flex items-center gap-2 ${
+                        !selectedFolder ? "text-primary font-bold" : ""
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faFolder} className="w-4 h-4" />
+                      All Notes
+                    </div>
+                  </div>
+                </li>
+                {folders.map((folder) => (
+                  <li key={folder._id}>
+                    <div
+                      className={`flex items-center gap-2 p-2 hover:bg-base-400 rounded ${
+                        selectedFolder?._id === folder._id ? "bg-base-400" : ""
+                      }`}
+                    >
+                      <div
+                        onClick={() =>
+                          !editingFolder && setSelectedFolder(folder)
+                        }
+                        className={`cursor-pointer flex-grow flex items-center gap-2 ${
+                          selectedFolder?._id === folder._id
+                            ? "text-primary font-bold"
+                            : ""
+                        }`}
+                      >
+                        <FontAwesomeIcon icon={faFolder} className="w-4 h-4" />
+                        {folder.name}
+                      </div>
+                      <div className="dropdown dropdown-end">
+                        <label tabIndex={0} className="btn btn-ghost btn-sm">
+                          <FontAwesomeIcon icon={faEllipsisVertical} />
+                        </label>
+                        <ul
+                          tabIndex={0}
+                          className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52"
+                        >
+                          <li>
+                            <button
+                              onClick={() => {
+                                setEditingFolder(folder);
+                                setNewFolderName(folder.name);
+                                setIsEditFolderModalOpen(true);
+                              }}
+                            >
+                              <FontAwesomeIcon
+                                icon={faPencilAlt}
+                                className="mr-2"
+                              />{" "}
+                              Rename
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onClick={() => setShowDeleteModal(folder)}
+                              className="text-error"
+                            >
+                              <FontAwesomeIcon
+                                icon={faTrashAlt}
+                                className="mr-2"
+                              />{" "}
+                              Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
           <button
-            className="btn btn-ghost btn-sm ml-4"
-            onClick={() => setIsTagsModalOpen(true)}
+            onClick={() => setIsNewFolderModalOpen(true)}
+            className="btn btn-primary mt-4 w-full"
           >
-            <FontAwesomeIcon icon={faPencil} />
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            New Folder
           </button>
         </div>
 
-        <div className="flex-1 flex">
-          {/* Notes Grid */}
-          <div className="bg-base-300 rounded-lg p-4 flex-1">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
-                {selectedFolder ? selectedFolder.name : "All Notes"}
-              </h2>
-              <button className="btn btn-primary" onClick={createEmptyNote}>
-                <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                New Note
-              </button>
-            </div>
+        {/* Notes Grid - Flexible Growth */}
+        <div className="flex-1 flex flex-col bg-base-300 rounded-lg p-4 min-w-0">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold truncate">
+              {selectedFolder ? selectedFolder.name : "All Notes"}
+            </h2>
+            <button
+              className="btn btn-primary btn-sm shrink-0"
+              onClick={createEmptyNote}
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              New Note
+            </button>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoading ? (
-                // Add keys to loading placeholders
-                [...Array(6)].map((_, index) => (
+          <div className="flex-1 overflow-y-auto -mx-2 px-2 min-h-0">
+            {isLoading ? (
+              <Masonry
+                breakpointCols={{
+                  default: 4,
+                  1536: 3,
+                  1280: 3,
+                  1024: 2,
+                  768: 2,
+                  640: 1,
+                }}
+                className="flex w-auto -ml-4"
+                columnClassName="pl-4 bg-clip-padding"
+              >
+                {[...Array(12)].map((_, index) => (
                   <div
                     key={`loading-${index}`}
-                    className="bg-base-200 rounded-lg p-4 animate-pulse"
+                    className="bg-base-200 rounded-lg p-3 mb-4 animate-pulse"
+                    style={{
+                      minHeight: `${Math.floor(
+                        Math.random() * (200 - 120 + 1) + 120
+                      )}px`,
+                    }}
                   >
-                    <div className="h-4 bg-base-100 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-base-100 rounded w-1/2"></div>
+                    {/* Title and Pin Area */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="h-6 bg-base-100 rounded w-2/3"></div>
+                      {Math.random() > 0.5 && (
+                        <div className="h-4 w-4 bg-base-100 rounded"></div>
+                      )}
+                    </div>
+
+                    {/* Folder Badge */}
+                    {Math.random() > 0.3 && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <div className="h-3 w-3 bg-base-100 rounded"></div>
+                        <div className="h-3 bg-base-100 rounded w-1/4"></div>
+                      </div>
+                    )}
+
+                    {/* Tags Area - Random number of tags */}
+                    <div className="flex flex-wrap gap-1.5 mt-auto mb-2">
+                      {[...Array(Math.floor(Math.random() * 4))].map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-6 bg-base-100 rounded-full"
+                          style={{
+                            width: `${Math.floor(
+                              Math.random() * (100 - 40 + 1) + 40
+                            )}px`,
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+
+                    {/* Date */}
+                    <div className="flex justify-end mt-auto">
+                      <div className="h-2 bg-base-100 rounded w-20"></div>
+                    </div>
                   </div>
-                ))
-              ) : filteredNotes.length === 0 ? (
-                <div className="col-span-full text-center py-12 text-gray-500">
-                  <p className="text-lg mb-2">No notes found</p>
-                  <p className="text-sm mb-4">
+                ))}
+              </Masonry>
+            ) : filteredNotes.length === 0 ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-xl text-gray-500 mb-3">No notes found</p>
+                  <p className="text-sm text-gray-400 mb-4">
                     {selectedFolder
                       ? "This folder is empty"
                       : selectedTags.length > 0
                       ? "No notes match the selected tags"
                       : "Start by creating your first note"}
                   </p>
-                  <button
-                    onClick={createEmptyNote}
-                    className="btn btn-primary btn-sm"
-                  >
+                  <button onClick={createEmptyNote} className="btn btn-primary">
                     <FontAwesomeIcon icon={faPlus} className="mr-2" />
                     Create Note
                   </button>
                 </div>
-              ) : (
-                filteredNotes.map((note) => (
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={{
+                  default: 4,
+                  1536: 3,
+                  1280: 3,
+                  1024: 2,
+                  768: 2,
+                  640: 1,
+                }}
+                className="flex w-auto -ml-4"
+                columnClassName="pl-4 bg-clip-padding"
+              >
+                {filteredNotes.map((note) => (
                   <div
-                    key={`note-${note._id}`} // Add prefix
-                    className="bg-base-200 rounded-lg p-4 cursor-pointer hover:bg-base-100"
+                    key={`note-${note._id}`}
+                    className="bg-base-200 rounded-lg p-3 cursor-pointer hover:bg-base-100 
+                      flex flex-col gap-2 transition-all duration-300 hover:shadow-lg
+                      transform hover:-translate-y-1 group animate-fadeIn mb-4"
                     onClick={() => setSelectedNote(note)}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold">
+                    {/* Title and Pin */}
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
                         {note.title || "Untitled"}
                       </h3>
                       {note.isPinned && (
                         <FontAwesomeIcon
                           icon={faThumbtack}
-                          className="text-primary"
+                          className="text-primary transform -rotate-45 group-hover:scale-110 transition-transform w-4 h-4"
                         />
                       )}
                     </div>
-                    {/* <p className="text-sm text-gray-400 line-clamp-3">
-                      {note.content}
-                    </p> */}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {(note.tags || []).map((tagId) => {
-                        // Add null check
-                        const tag = tags.find((t) => t._id === tagId);
-                        return tag ? (
-                          <span
-                            key={`note-${note._id}-tag-${tagId}`} // Add compound key
-                            className={`badge badge-sm ${getContrastText(
-                              tag.color
-                            )}`}
-                            style={{ backgroundColor: tag.color }}
-                          >
-                            {tag.name}
-                          </span>
-                        ) : null;
-                      })}
+
+                    {/* Folder Badge */}
+                    {note.folderId && (
+                      <div className="flex items-center gap-1.5 text-xs text-base-content/70 hover:text-primary transition-colors">
+                        <FontAwesomeIcon icon={faFolder} className="w-3 h-3" />
+                        <span>{note.folderId.name}</span>
+                      </div>
+                    )}
+
+                    {/* Tags - Matching tags bar style */}
+                    {note.tags && note.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-auto">
+                        {note.tags.map((tag) => {
+                          const textColorClass = getTextColorForHex(tag.color);
+                          return (
+                            <span
+                              key={`note-${note._id}-tag-${tag._id}`}
+                              className={`btn btn-sm border-none no-animation h-6 min-h-0 ${textColorClass}`}
+                              style={{
+                                backgroundColor: tag.color,
+                              }}
+                            >
+                              <FontAwesomeIcon
+                                icon={faTag}
+                                className="mr-1 w-2.5 h-2.5"
+                              />
+                              {tag.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Last Modified */}
+                    <div className="text-[10px] text-base-content/40 text-right mt-1 group-hover:text-base-content/60 transition-colors">
+                      {new Date(note.updatedAt).toLocaleDateString()}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </Masonry>
+            )}
           </div>
         </div>
       </div>
@@ -746,35 +854,45 @@ export default function NotesClient({ session }) {
       {/* Updated Tags Management Modal */}
       {isTagsModalOpen && (
         <div className="modal modal-open">
-          <div className="modal-box relative">
-            <h3 className="font-bold text-lg">Manage Tags</h3>
-            <div className="space-y-4 mt-4">
-              {tags.map((tag) => (
-                <div key={tag._id} className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={tagChanges.get(tag._id)?.color || tag.color}
-                    onChange={(e) =>
-                      handleTagChange(tag._id, { color: e.target.value })
-                    }
-                    className="w-8 h-8 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={tagChanges.get(tag._id)?.name || tag.name}
-                    onChange={(e) =>
-                      handleTagChange(tag._id, { name: e.target.value })
-                    }
-                    className="input input-bordered flex-1"
-                  />
-                  <button
-                    className="btn btn-ghost btn-square"
-                    onClick={() => setShowDeleteTagModal(tag._id)}
+          <div className="modal-box relative max-h-[83.333333%] flex flex-col">
+            <h3 className="font-bold text-lg mb-4">Manage Tags</h3>
+            {/* Scrollable Tags List */}
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+              <div className="space-y-3">
+                {tags.map((tag) => (
+                  <div
+                    key={tag._id}
+                    className="flex items-center gap-2 bg-base-200 p-2 rounded-lg hover:bg-base-300 transition-colors"
                   >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              ))}
+                    <input
+                      type="color"
+                      value={tagChanges.get(tag._id)?.color || tag.color}
+                      onChange={(e) =>
+                        handleTagChange(tag._id, { color: e.target.value })
+                      }
+                      className="w-8 h-8 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={tagChanges.get(tag._id)?.name || tag.name}
+                      onChange={(e) =>
+                        handleTagChange(tag._id, { name: e.target.value })
+                      }
+                      className="input input-bordered flex-1"
+                    />
+                    <button
+                      className="btn btn-ghost btn-sm btn-square"
+                      onClick={() => setShowDeleteTagModal(tag._id)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Fixed bottom section */}
+            <div className="pt-4 border-t border-base-300 mt-4">
               <form onSubmit={handleCreateTag} className="flex gap-2">
                 <input
                   type="text"
@@ -910,20 +1028,32 @@ export default function NotesClient({ session }) {
           <div className="modal-box">
             <h3 className="font-bold text-lg">Delete Tag</h3>
             <p className="py-4">
-              Are you sure you want to delete this tag? This cannot be undone.
+              What would you like to do with notes that have this tag?
             </p>
-            <div className="modal-action">
+            <div className="modal-action flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
-                className="btn"
+                className="btn btn-ghost order-3 sm:order-1 w-full sm:w-auto"
                 onClick={() => setShowDeleteTagModal(null)}
               >
                 Cancel
               </button>
               <button
-                className="btn btn-error"
-                onClick={() => handleDeleteTag(showDeleteTagModal)}
+                className="btn btn-primary order-2 w-full sm:w-auto"
+                onClick={async () => {
+                  await handleDeleteTag(showDeleteTagModal, false);
+                  toast.success("Tag deleted, notes preserved");
+                }}
               >
-                Delete
+                Keep Notes
+              </button>
+              <button
+                className="btn btn-error order-1 sm:order-3 w-full sm:w-auto"
+                onClick={async () => {
+                  await handleDeleteTag(showDeleteTagModal, true);
+                  toast.success("Tag and associated notes deleted");
+                }}
+              >
+                Delete with Notes
               </button>
             </div>
           </div>

@@ -43,6 +43,18 @@ export default function TasksPage() {
   const [moveTaskModal, setMoveTaskModal] = useState(null); // Add new state for move task modal
   const [isLoading, setIsLoading] = useState(true);
   const [isFoldersLoading, setIsFoldersLoading] = useState(true);
+  const [taskToDelete, setTaskToDelete] = useState(null); // Add this new state
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
+
+  const isTaskDueToday = (taskDate) => {
+    const today = new Date();
+    const dueDate = new Date(taskDate);
+    return (
+      dueDate.getDate() === today.getDate() &&
+      dueDate.getMonth() === today.getMonth() &&
+      dueDate.getFullYear() === today.getFullYear()
+    );
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -204,6 +216,7 @@ export default function TasksPage() {
       if (response.ok) {
         toast.success("Task deleted successfully");
         setTasks(tasks.filter((t) => t._id !== taskId));
+        setTaskToDelete(null); // Clear the task to delete
       } else {
         const data = await response.json();
         toast.error(data.error || "Failed to delete task");
@@ -346,48 +359,40 @@ export default function TasksPage() {
       className={inModal ? "" : "mb-6 bg-base-300 p-4 rounded-lg"}
     >
       <div className="flex flex-col gap-4">
-        <div className="flex gap-4 flex-wrap">
-          <input
-            type="text"
-            value={newTask.title}
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-            placeholder="Task title"
-            className="input input-bordered flex-1"
-            required
-          />
-          <input
-            type="date"
-            value={newTask.dueDate}
-            onChange={(e) =>
-              setNewTask({ ...newTask, dueDate: e.target.value })
-            }
-            className="input input-bordered w-full md:w-auto"
-            required
-          />
-          {!selectedFolder && (
-            <select
-              value={newTask.folderId}
-              onChange={(e) =>
-                setNewTask({ ...newTask, folderId: e.target.value })
-              }
-              className="select select-bordered w-full md:w-auto"
-            >
-              <option value="">No Folder</option>
-              {folders.map((folder) => (
-                <option key={folder._id} value={folder._id}>
-                  {folder.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+        <input
+          type="text"
+          value={newTask.title}
+          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+          placeholder="Task title"
+          className="input input-bordered w-full"
+          required
+        />
+        <input
+          type="date"
+          value={newTask.dueDate}
+          onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+          className="input input-bordered w-full"
+          required
+        />
+        {!selectedFolder && (
+          <select
+            value={newTask.folderId}
+            onChange={(e) => setNewTask({ ...newTask, folderId: e.target.value })}
+            className="select select-bordered w-full"
+          >
+            <option value="">No Folder</option>
+            {folders.map((folder) => (
+              <option key={folder._id} value={folder._id}>
+                {folder.name}
+              </option>
+            ))}
+          </select>
+        )}
         <textarea
           value={newTask.description}
-          onChange={(e) =>
-            setNewTask({ ...newTask, description: e.target.value })
-          }
+          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
           placeholder="Task description (optional)"
-          className="textarea textarea-bordered w-full "
+          className="textarea textarea-bordered w-full"
           rows={3}
         />
         <div className="flex justify-end">
@@ -533,8 +538,13 @@ export default function TasksPage() {
   };
 
   const renderTasksList = (tasks) => {
-    const uncompletedTasks = tasks.filter((task) => !task.done);
-    const completedTasks = tasks.filter((task) => task.done);
+    // Apply today filter if enabled
+    const filteredTasks = showTodayOnly
+      ? tasks.filter(task => isTaskDueToday(task.dueDate))
+      : tasks;
+
+    const uncompletedTasks = filteredTasks.filter((task) => !task.done);
+    const completedTasks = filteredTasks.filter((task) => task.done);
 
     return (
       <>
@@ -543,7 +553,16 @@ export default function TasksPage() {
           <h3 className="text-lg font-bold mb-4">Tasks To Do</h3>
           <div className="space-y-4">
             {uncompletedTasks.length === 0 ? (
-              <p className="text-center text-gray-500 p-4">No tasks to do</p>
+              <div className="flex items-center justify-center h-32 bg-base-200 rounded-lg">
+                <div className="text-center">
+                  <p className="text-gray-500 text-lg mb-2">No tasks to do</p>
+                  <p className="text-sm text-gray-400">
+                    {selectedFolder
+                      ? "This folder is empty"
+                      : "Click 'Add Task' to create a new task"}
+                  </p>
+                </div>
+              </div>
             ) : (
               uncompletedTasks.map((task) => (
                 <div key={task._id} className="bg-base-200 rounded-lg">
@@ -684,7 +703,7 @@ export default function TasksPage() {
                               />
                             </button>
                             <button
-                              onClick={() => deleteTask(task._id)}
+                              onClick={() => setTaskToDelete(task)}
                               className="btn btn-ghost btn-sm"
                             >
                               <FontAwesomeIcon
@@ -730,7 +749,7 @@ export default function TasksPage() {
                               </li>
                               <li>
                                 <button
-                                  onClick={() => deleteTask(task._id)}
+                                  onClick={() => setTaskToDelete(task)}
                                   className="text-error"
                                 >
                                   <FontAwesomeIcon icon={faTrash} /> Delete
@@ -760,9 +779,9 @@ export default function TasksPage() {
           <h3 className="text-lg font-bold mb-4">Completed Tasks</h3>
           <div className="space-y-4 opacity-60">
             {completedTasks.length === 0 ? (
-              <p className="text-center text-gray-500 p-4">
-                No completed tasks
-              </p>
+              <div className="flex items-center justify-center h-24 bg-base-200 rounded-lg">
+                <p className="text-gray-500">No completed tasks</p>
+              </div>
             ) : (
               completedTasks.map((task) => (
                 <div key={task._id} className="bg-base-200 rounded-lg">
@@ -903,7 +922,7 @@ export default function TasksPage() {
                               />
                             </button>
                             <button
-                              onClick={() => deleteTask(task._id)}
+                              onClick={() => setTaskToDelete(task)}
                               className="btn btn-ghost btn-sm"
                             >
                               <FontAwesomeIcon
@@ -949,7 +968,7 @@ export default function TasksPage() {
                               </li>
                               <li>
                                 <button
-                                  onClick={() => deleteTask(task._id)}
+                                  onClick={() => setTaskToDelete(task)}
                                   className="text-error"
                                 >
                                   <FontAwesomeIcon icon={faTrash} /> Delete
@@ -982,39 +1001,57 @@ export default function TasksPage() {
       <div className="w-[95%] h-5/6 mt-24 flex flex-col items-center contect-center">
         <div className="flex flex-col md:flex-row w-full h-full gap-6">
           {/* Folders Sidebar - Only visible on md and larger screens */}
-          <div className="hidden lg:block bg-base-300 p-4 rounded-lg md:w-1/4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Folders</h2>
-              <button
-                onClick={() => setIsNewFolderModalOpen(true)}
-                className="btn btn-primary btn-sm"
-              >
-                New Folder
-              </button>
+          <div className="hidden lg:flex bg-base-300 p-4 rounded-lg md:w-1/4 flex-col">
+            <h2 className="text-xl font-bold mb-4">Folders</h2>
+            
+            {/* Make this div scrollable */}
+            <div className="flex-1 overflow-y-auto mb-4">
+              {renderFoldersList()}
             </div>
-            {renderFoldersList()}
+
+            {/* New Folder button at bottom */}
+            <button
+              onClick={() => setIsNewFolderModalOpen(true)}
+              className="btn btn-primary w-full"
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              New Folder
+            </button>
           </div>
 
           {/* Tasks List */}
-          <div className="flex-1">
-            {/* Mobile Add Task Button */}
-            <div className="lg:hidden mb-6">
-              <button
-                onClick={() => setIsNewTaskModalOpen(true)}
-                className="btn btn-primary btn-circle fixed bottom-6 right-6 shadow-lg"
-              >
-                <FontAwesomeIcon icon={faPlus} className="text-2xl" />
-              </button>
+          <div className="flex-1 flex flex-col h-full">
+            {/* Tasks Header with Add Button */}
+            <div className="bg-base-300 p-4 rounded-lg mb-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold">
+                {selectedFolder ? selectedFolder.name : "All Tasks"}
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTodayOnly(!showTodayOnly)}
+                  className={`btn btn-sm ${showTodayOnly ? 'btn-primary' : 'btn-neutral'}`}
+                >
+                  Today
+                  {showTodayOnly && (
+                    <div className="badge badge-secondary badge-sm ml-2">
+                      {tasks.filter(task => isTaskDueToday(task.dueDate)).length}
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setIsNewTaskModalOpen(true)}
+                  className="btn btn-primary btn-sm"
+                >
+                  Add Task
+                </button>
+              </div>
             </div>
 
-            {/* Desktop Task Form */}
-            <div className="hidden lg:block">{renderTaskForm()}</div>
-
-            {/* Tasks List */}
-            <div className="space-y-4 bg-base-300 p-4 rounded-lg">
+            {/* Scrollable Tasks List */}
+            <div className="flex-1 bg-base-300 p-4 rounded-lg overflow-y-auto">
               {isLoading ? (
                 <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
+                  {[...Array(6)].map((_, i) => (
                     <LoadingTaskCard key={i} />
                   ))}
                 </div>
@@ -1098,16 +1135,16 @@ export default function TasksPage() {
         {isNewTaskModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-lg">
-              <h3 className="text-lg font-bold mb-4">Add New Task</h3>
-              {renderTaskForm(true)}
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold">Add New Task</h3>
                 <button
                   onClick={() => setIsNewTaskModalOpen(false)}
-                  className="btn btn-ghost w-full"
+                  className="btn btn-ghost btn-sm btn-circle"
                 >
-                  Cancel
+                  <FontAwesomeIcon icon={faXmark} className="w-5 h-5" />
                 </button>
               </div>
+              {renderTaskForm(true)}
             </div>
           </div>
         )}
@@ -1172,6 +1209,33 @@ export default function TasksPage() {
                     Move
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Delete Task Confirmation Modal */}
+        {taskToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-base-200 p-6 rounded-lg w-[95%] max-w-md">
+              <h3 className="text-lg font-bold mb-4">Delete Task</h3>
+              <p className="mb-6">
+                Are you sure you want to delete "{taskToDelete.title}"? This action cannot
+                be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setTaskToDelete(null)}
+                  className="btn btn-ghost"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteTask(taskToDelete._id)}
+                  className="btn btn-error"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>

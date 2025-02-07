@@ -90,6 +90,8 @@ export function SettingsProvider({ children }) {
         document.body.style.backgroundImage = `var(--wallpaper)`;
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed'; // Add this line
+        document.body.style.minHeight = '100vh'; // Ensure full viewport height
       } catch (error) {
         console.error('Error applying wallpaper:', error);
         document.body.style.backgroundImage = 'none';

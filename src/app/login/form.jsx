@@ -11,7 +11,7 @@ export default function Form() {
   const session = useSession();
 
   const handleGithubSignIn = async () => {
-    await signIn("github", { callbackUrl: "/" });
+    await signIn("github", { callbackUrl: "/home" });
   };
 
   useEffect(() => {

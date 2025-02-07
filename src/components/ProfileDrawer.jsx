@@ -10,6 +10,8 @@ import {
   faSignOutAlt,
   faX,
   faChartLine,
+  faFileContract,
+  faShieldAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import LogoutButton from "./LogoutButton";
 import LoadingAvatar from "./loadings/LoadingAvatar";
@@ -107,20 +109,29 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
             </li>
             <li>
               <Link
-                href="/profile"
-                className="flex items-center p-3 hover:bg-base-300"
-              >
-                <FontAwesomeIcon icon={faChartLine} className="w-5 h-5" />
-                <span className="ml-3">Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link
                 href="/settings"
                 className="flex items-center p-3 hover:bg-base-300"
               >
                 <FontAwesomeIcon icon={faCog} className="w-5 h-5" />
                 <span className="ml-3">Settings</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/terms"
+                className="flex items-center p-3 hover:bg-base-300"
+              >
+                <FontAwesomeIcon icon={faFileContract} className="w-5 h-5" />
+                <span className="ml-3">Terms of Service</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/privacy"
+                className="flex items-center p-3 hover:bg-base-300"
+              >
+                <FontAwesomeIcon icon={faShieldAlt} className="w-5 h-5" />
+                <span className="ml-3">Privacy Policy</span>
               </Link>
             </li>
           </ul>

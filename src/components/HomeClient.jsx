@@ -301,8 +301,8 @@ export default function HomeClient({ session, greeting }) {
   }, []);
 
   return (
-    <main className="login-bg bg-bg-img bg-cover bg-no-repeat bg-center flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)]">
-      <div className="flex flex-col gap-5 lg:gap-10 py-5 w-full h-5/6 items-center">
+    <main className="login-bg bg-bg-img bg-cover bg-no-repeat bg-center bg-fixed flex flex-col content-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)]">
+      <div className="flex flex-col gap-5 py-5 w-full h-5/6 items-center">
         {/* Good morning section */}
         <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] justify-center">
           <div className="flex justify-start h-full">
@@ -348,7 +348,7 @@ export default function HomeClient({ session, greeting }) {
         </section>
       </div>
 
-      <div className="flex lg:flex-row flex-col items-start gap-5 lg:gap-10 py-5 w-[95%] h-5/6">
+      <div className="flex lg:flex-row flex-col items-start gap-5 py-5 w-[95%] h-5/6">
         {/* Tasks Section */}
         <section className="flex items-start gap-4 p-10 bg-base-300 rounded-xl w-full lg:w-1/2 justify-center">
           <div className="flex justify-start h-full flex-col items-center w-full">
