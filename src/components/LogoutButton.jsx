@@ -9,7 +9,7 @@ export default function LogoutButton({ className, children }) {
       await axios.get("/api/auth/logout");
       await signOut({
         redirect: true,
-        callbackUrl: "/login",
+        callbackUrl: "/",
       });
     } catch (error) {
       console.error("Logout error:", error);
