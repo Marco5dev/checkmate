@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,11 +10,15 @@ import {
   faSignOutAlt,
   faX,
   faChartLine,
+  faFileContract,
+  faShieldAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import LogoutButton from "./LogoutButton";
+import LoadingAvatar from "./loadings/LoadingAvatar";
 
-const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
+const ProfileDrawer = ({ isOpen, onClose, direction, session, userData }) => {
   const drawerRef = useRef(null);
+  const [isAvatarLoading, setIsAvatarLoading] = useState(true);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,13 +69,16 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
         {/* Profile Header */}
         <div className="flex flex-col items-center pt-12 pb-8 px-4 bg-base-200">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-primary ring-offset-2 ring-offset-base-300 mb-4">
-            {session?.user?.avatar?.base64 ? (
+            {isAvatarLoading && <LoadingAvatar size="lg" />}
+            {userData?.avatar?.base64 ? (
               <Image
-                src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
+                src={`data:${userData.avatar.contentType};base64,${userData.avatar.base64}`}
                 alt="Profile"
                 width={112}
                 height={112}
-                className="rounded-full object-cover"
+                className={`rounded-full object-cover ${isAvatarLoading ? 'hidden' : ''}`}
+                priority
+                onLoadingComplete={() => setIsAvatarLoading(false)}
               />
             ) : (
               <div className="bg-gray-300 w-full h-full rounded-full flex items-center justify-center">
@@ -83,8 +90,8 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
             )}
           </div>
           <div className="text-center">
-            <h3 className="text-lg font-bold">{session?.user?.name}</h3>
-            <p className="text-sm text-gray-500">{session?.user?.email}</p>
+            <h3 className="text-lg font-bold">{userData?.name}</h3>
+            <p className="text-sm text-gray-500">@{userData?.username}</p>
           </div>
         </div>
 
@@ -102,20 +109,29 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
             </li>
             <li>
               <Link
-                href="/profile"
-                className="flex items-center p-3 hover:bg-base-300"
-              >
-                <FontAwesomeIcon icon={faChartLine} className="w-5 h-5" />
-                <span className="ml-3">Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link
                 href="/settings"
                 className="flex items-center p-3 hover:bg-base-300"
               >
                 <FontAwesomeIcon icon={faCog} className="w-5 h-5" />
                 <span className="ml-3">Settings</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/terms"
+                className="flex items-center p-3 hover:bg-base-300"
+              >
+                <FontAwesomeIcon icon={faFileContract} className="w-5 h-5" />
+                <span className="ml-3">Terms of Service</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/privacy"
+                className="flex items-center p-3 hover:bg-base-300"
+              >
+                <FontAwesomeIcon icon={faShieldAlt} className="w-5 h-5" />
+                <span className="ml-3">Privacy Policy</span>
               </Link>
             </li>
           </ul>

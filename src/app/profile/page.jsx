@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ProfileEditor from "@/components/ProfileEditor";
 import { DBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import User from "@/models/User";
 
 export default async function Profile() {
   await DBConnect();
@@ -42,9 +42,9 @@ export default async function Profile() {
   };
 
   return (
-    <main className="login-bg bg-cover bg-no-repeat bg-center flex flex-col content-center text-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
-      <div className="flex flex-col items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%]">
-        <h1 className="text-3xl font-bold mb-6">Profile Settings</h1>
+    <main className="login-bg bg-cover bg-no-repeat bg-fixed flex flex-col content-center text-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
+      <div className="flex flex-col items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] text-center">
+        <h1 className="text-3xl font-bold mb-6 w-full">Profile Settings</h1>
         <ProfileEditor session={enrichedSession} />
       </div>
     </main>

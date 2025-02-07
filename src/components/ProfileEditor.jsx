@@ -1,331 +1,255 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faUser,
-  faPen,
-  faCheck,
-  faXmark,
-  faCamera,
-} from "@fortawesome/free-solid-svg-icons";
-import ConnectedAccounts from "./ConnectedAccounts";
-import PasswordModal from "./PasswordModal";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 import ImageCropModal from "./ImageCropModal";
 
-const ProfileEditor = ({ session }) => {
-  const router = useRouter();
+export default function ProfileEditor({ session }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [errors, setErrors] = useState({ email: '', username: '' });
   const [formData, setFormData] = useState({
-    name: session.user.name,
-    email: session.user.email,
+    name: session.user.name || "",
     username: session.user.username || "",
+    description: session.user.description || "",
   });
+  const [errors, setErrors] = useState({});
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  const router = useRouter();
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Username validation
-    if (name === 'username') {
-      const regex = /^[a-z0-9_]+$/;
-      if (!regex.test(value)) {
-        toast.error("Username can only contain lowercase letters, numbers, and underscores");
-        return;
-      }
-    }
-
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setHasChanges(true);
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
   };
 
-  const handleSave = async () => {
-    try {
-      const response = await fetch("/api/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 409) {
-          // Handle duplicate key errors
-          setErrors(data.errors);
-          toast.error("Email or username already in use");
-          return;
-        }
-        throw new Error(data.message || "Failed to update profile");
-      }
-
-      toast.success("Profile updated successfully");
-      setHasChanges(false);
-      setIsEditing(false);
-      setErrors({ email: '', username: '' });
-      
-      // Force session update
-      const event = new Event("visibilitychange");
-      document.dispatchEvent(event);
-      
-      router.refresh();
-    } catch (error) {
-      toast.error(error.message || "Failed to update profile");
-    }
-  };
-
-  const handleRevert = () => {
-    setFormData({
-      name: session.user.name,
-      email: session.user.email,
-      username: session.user.username || "",
-    });
-    setHasChanges(false);
-    setIsEditing(false);
-  };
-
-  const handleDisconnect = async (platform) => {
-    try {
-      const response = await fetch(`/api/auth/disconnect/${platform}`, {
-        method: "POST",
-      });
-      
-      if (!response.ok) throw new Error("Failed to disconnect");
-      
-      toast.success(`Disconnected from ${platform}`);
-      router.refresh();
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+      toast.error("Image size should be less than 5MB");
       return;
     }
 
-    const imageUrl = URL.createObjectURL(file);
-    setSelectedImage(imageUrl);
-    setCropModalOpen(true);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setImageUrl(reader.result);
+      setShowCropModal(true);
+    };
   };
 
-  const handleCropComplete = async (croppedBlob) => {
+  const handleCropComplete = async (blob) => {
     try {
-      const base64 = await convertToBase64(croppedBlob);
-      const response = await fetch('/api/profile/avatar', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          avatar: {
-            filename: 'profile-avatar.jpg',
-            contentType: 'image/jpeg',
-            base64: base64.split(',')[1],
-            createdAt: new Date(),
-          },
-        }),
-      });
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        const base64Data = reader.result.split(',')[1];
 
-      if (!response.ok) throw new Error('Failed to update avatar');
-      
-      toast.success('Avatar updated successfully');
-      router.refresh();
+        const res = await fetch("/api/profile/avatar", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: "cropped-avatar.jpg",
+            contentType: "image/jpeg",
+            base64: base64Data,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update avatar");
+
+        toast.success("Avatar updated successfully");
+        router.refresh();
+      };
     } catch (error) {
-      toast.error(error.message || 'Failed to update avatar');
+      toast.error("Failed to update avatar");
     } finally {
-      URL.revokeObjectURL(selectedImage);
-      setSelectedImage(null);
+      setIsUploading(false);
     }
   };
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
+
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.errors) {
+          setErrors(data.errors);
+          Object.values(data.errors).forEach(error => toast.error(error));
+        } else {
+          toast.error(data.message || "Failed to update profile");
+        }
+        return;
+      }
+
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+      router.refresh();
+    } catch (error) {
+      toast.error("An error occurred while updating profile");
+    }
   };
 
   return (
     <>
-      <div className="w-full flex lg:flex-row flex-col items-start">
-        <div className="w-2/6">
-          {/* Profile Image Section */}
-          <div className="flex justify-center mb-8">
-            <div className="w-32 h-32 relative group">
-              {session?.user?.avatar?.base64 ? (
-                <Image
-                  src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
-                  alt="Profile"
-                  width={128}
-                  height={128}
-                  className="rounded-full"
-                />
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center gap-4 w-full md:w-1/3">
+            <div 
+              className="w-32 h-32 rounded-full overflow-hidden bg-base-200 cursor-pointer relative group"
+              onClick={handleAvatarClick}
+            >
+              {session.user.avatar?.base64 ? (
+                <>
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
+                      alt={session.user.name || "Profile"}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-sm">Change Avatar</span>
+                  </div>
+                </>
               ) : (
-                <div className="bg-gray-300 w-32 h-32 rounded-full flex items-center justify-center">
-                  <FontAwesomeIcon icon={faUser} className="text-gray-600 text-4xl" />
+                <div className="w-full h-full flex items-center justify-center bg-base-300 group-hover:bg-base-200 transition-colors">
+                  <FontAwesomeIcon icon={faUser} className="text-4xl text-gray-400" />
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 bg-primary text-primary-content rounded-full btn btn-primary btn-circle cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-200">
-                <FontAwesomeIcon icon={faCamera} className="w-4 h-4" /> 
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                />
-              </label>
+              {isUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                  <span className="loading loading-spinner loading-md"></span>
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Connected Accounts Section */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Connected Accounts</h3>
-            <ConnectedAccounts
-              user={session.user}
-              onDisconnect={handleDisconnect}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleAvatarChange}
             />
-          </div>
-        </div>
-
-        <div className="divider lg:divider-horizontal"></div>
-
-        <div className="w-4/6">
-          {/* Profile Info Section */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Profile Information</h2>
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="btn btn-ghost btn-sm"
-              >
-                <FontAwesomeIcon icon={isEditing ? faXmark : faPen} />
-                {isEditing ? " Cancel" : " Edit"}
-              </button>
+            <div className="text-center">
+              <h2 className="text-xl font-bold">{session.user.name}</h2>
+              <p className="text-sm text-gray-500">@{session.user.username}</p>
             </div>
+          </div>
 
-            <div className="space-y-4">
-              {/* Name Field */}
+          {/* Profile Form */}
+          <div className="flex-1">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Name</span>
                 </label>
                 <input
                   type="text"
-                  name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="input input-bordered bg-base-200"
                   disabled={!isEditing}
-                  className="input input-bordered"
                   required
-                  minLength={2}
-                  maxLength={50}
                 />
               </div>
 
-              {/* Email Field */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Email</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className={`input input-bordered ${errors.email ? 'input-error' : ''}`}
-                  required
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                />
-                {errors.email && <span className="text-error text-sm mt-1">{errors.email}</span>}
-              </div>
-
-              {/* Username Field */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Username</span>
-                  <span className="label-text-alt text-xs opacity-70">
-                    Lowercase letters, numbers, and underscores only
-                  </span>
                 </label>
                 <input
                   type="text"
-                  name="username"
                   value={formData.username}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className={`input input-bordered bg-base-200 ${
+                    errors.username ? "input-error" : ""
+                  }`}
                   disabled={!isEditing}
-                  className={`input input-bordered ${errors.username ? 'input-error' : ''}`}
                   required
-                  pattern="^[a-z0-9_]+$"
-                  minLength={3}
-                  maxLength={20}
                 />
-                {errors.username && <span className="text-error text-sm mt-1">{errors.username}</span>}
+                {errors.username && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.username}</span>
+                  </label>
+                )}
               </div>
 
-              {/* Password Change Section */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Password</span>
+                  <span className="label-text">Description</span>
                 </label>
-                <button 
-                  onClick={() => setIsPasswordModalOpen(true)}
-                  className="btn btn-outline btn-sm w-40"
-                >
-                  {session.user.password_changes > 0 ? "Change Password" : "Set Password"}
-                </button>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="textarea textarea-bordered bg-base-200"
+                  disabled={!isEditing}
+                  rows={4}
+                />
               </div>
-            </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="btn btn-primary"
+                  >
+                    Edit Profile
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setFormData({
+                          name: session.user.name || "",
+                          username: session.user.username || "",
+                          description: session.user.description || "",
+                        });
+                        setErrors({});
+                      }}
+                      className="btn btn-ghost"
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Save Changes
+                    </button>
+                  </>
+                )}
+              </div>
+            </form>
           </div>
         </div>
-
-        {/* Floating Changes Bar */}
-        {hasChanges && (
-          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-content p-4 rounded-lg shadow-lg flex gap-4 items-center">
-            <span>You have unsaved changes</span>
-            <button onClick={handleSave} className="btn btn-sm btn-ghost">
-              <FontAwesomeIcon icon={faCheck} /> Save
-            </button>
-            <button onClick={handleRevert} className="btn btn-sm btn-ghost">
-              <FontAwesomeIcon icon={faXmark} /> Revert
-            </button>
-          </div>
-        )}
       </div>
 
-      <PasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        password_changes={session.user.password_changes}  // Change this line
-      />
-
       <ImageCropModal
-        isOpen={cropModalOpen}
+        isOpen={showCropModal}
         onClose={() => {
-          setCropModalOpen(false);
-          setSelectedImage(null);
+          setShowCropModal(false);
+          setImageUrl(null);
         }}
-        imageUrl={selectedImage}
+        imageUrl={imageUrl}
         onCropComplete={handleCropComplete}
       />
     </>
   );
-};
-
-export default ProfileEditor;
+}

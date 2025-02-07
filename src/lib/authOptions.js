@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { usersDBConnect } from "@/utils/mongodb";
-import User from "@/model/User";
+import { DBConnect } from "@/utils/mongodb";
+import User from "@/models/User";
 
 export const authOptions = {
   providers: [
@@ -12,7 +12,7 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        await usersDBConnect();
+        await DBConnect();
         const user = await User.findOne({ email: credentials.email });
         if (user && (await user.comparePassword(credentials.password))) {
           return { id: user._id, email: user.email };
@@ -22,6 +22,24 @@ export const authOptions = {
       },
     }),
   ],
+  callbacks: {
+    async session({ session, token }) {
+      if (session?.user) {
+        await DBConnect();
+        const user = await User.findOne({ email: session.user.email }).lean();
+        if (user) {
+          session.user.id = user._id.toString();
+        }
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    }
+  },
   session: {
     strategy: "jwt",
   },

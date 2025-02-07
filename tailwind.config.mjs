@@ -7,12 +7,26 @@ export default {
   ],
   theme: {
     extend: {
+      keyframes: {
+        slideUp: {
+          '0%': { transform: 'translateY(100px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-100px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        }
+      },
+      animation: {
+        slideUp: 'slideUp 0.7s ease-out forwards',
+        slideDown: 'slideDown 0.7s ease-out forwards',
+      },
       fontFamily: {
-        edu: ['EduAUVICWANTPre', 'sans-serif'],
-        merriweather: ['Merriweather', 'serif'],
+        edu: ["EduAUVICWANTPre", "sans-serif"],
+        merriweather: ["Merriweather", "serif"],
       },
       backgroundImage: {
-        "bg-img": "url('/wallpapers/wall.png')", // Make sure this matches your image path exactly
+        "login-bg": "var(--wallpaper, url('/wallpapers/login.png'))",
       },
       colors: {
         background: "var(--background)",
@@ -36,17 +50,17 @@ export default {
           "base-100": "#121212",
           "base-200": "#1c1c1c", // Darker tone of base-100
           "base-300": "#2c2c2c", // Even darker tone of base-200
-          "base-400": "#2D2424", // Even darker tone of base-200
-          "base-400": "#1E1717", // Even darker tone of base-200
-          "base-400": "#0F0B0B", // Even darker tone of base-200
+          "base-400": "#2D2424", // Even darker tone of base-300
+          "base-500": "#1E1717", // Even darker tone of base-400
+          "base-600": "#0F0B0B", // Even darker tone of base-500
           "base-content": "#FFFFFF", // Example content color for base
-          info: "#B85C38",
+          info: "#0277BD",
           "info-content": "#FFFFFF", // Example content color for info
-          success: "#5C3D2E",
-          "success-content": "#FFFFFF", // Example content color for success
-          warning: "#E0C097",
+          success: "#00C853",
+          "success-content": "#000000", // Example content color for success
+          warning: "#F9A825",
           "warning-content": "#000000", // Example content color for warning
-          error: "#B85C38",
+          error: "#D32F2F",
           "error-content": "#FFFFFF", // Example content color for error
 
           "--rounded-box": "1.2rem", // more modern rounded corners for card elements
@@ -74,6 +88,38 @@ export default {
           "--glass-reflex-opacity": "0.1",
         },
       },
+      "light",
+      "dark",
+      "cupcake",
+      "bumblebee",
+      "emerald",
+      "corporate",
+      "synthwave",
+      "retro",
+      "cyberpunk",
+      "valentine",
+      "halloween",
+      "garden",
+      "forest",
+      "aqua",
+      "lofi",
+      "pastel",
+      "fantasy",
+      "wireframe",
+      "black",
+      "luxury",
+      "dracula",
+      "cmyk",
+      "autumn",
+      "business",
+      "acid",
+      "lemonade",
+      "night",
+      "coffee",
+      "winter",
+      "dim",
+      "nord",
+      "sunset",
     ], // false: only light + dark | true: all themes | array: specific themes like this ["light", "dark", "cupcake"]
     darkTheme: "custom", // name of one of the included themes for dark mode
     base: true, // applies background color and foreground color for root element by default
