@@ -22,8 +22,8 @@ export default {
         slideDown: 'slideDown 0.7s ease-out forwards',
       },
       fontFamily: {
-        edu: ["EduAUVICWANTPre", "sans-serif"],
-        merriweather: ["Merriweather", "serif"],
+        edu: ['var(--font-edu)'],
+        merriweather: ['var(--font-merriweather)'],
       },
       backgroundImage: {
         "login-bg": "var(--wallpaper, url('/wallpapers/login.png'))",
