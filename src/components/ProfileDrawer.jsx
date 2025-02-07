@@ -16,7 +16,7 @@ import {
 import LogoutButton from "./LogoutButton";
 import LoadingAvatar from "./loadings/LoadingAvatar";
 
-const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
+const ProfileDrawer = ({ isOpen, onClose, direction, session, userData }) => {
   const drawerRef = useRef(null);
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
 
@@ -70,9 +70,9 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
         <div className="flex flex-col items-center pt-12 pb-8 px-4 bg-base-200">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-primary ring-offset-2 ring-offset-base-300 mb-4">
             {isAvatarLoading && <LoadingAvatar size="lg" />}
-            {session?.user?.avatar?.base64 ? (
+            {userData?.avatar?.base64 ? (
               <Image
-                src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
+                src={`data:${userData.avatar.contentType};base64,${userData.avatar.base64}`}
                 alt="Profile"
                 width={112}
                 height={112}
@@ -90,8 +90,8 @@ const ProfileDrawer = ({ isOpen, onClose, direction, session }) => {
             )}
           </div>
           <div className="text-center">
-            <h3 className="text-lg font-bold">{session?.user?.name}</h3>
-            <p className="text-sm text-gray-500">@{session?.user?.username}</p>
+            <h3 className="text-lg font-bold">{userData?.name}</h3>
+            <p className="text-sm text-gray-500">@{userData?.username}</p>
           </div>
         </div>
 

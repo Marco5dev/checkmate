@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -14,17 +13,19 @@ import {
   faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { faX } from "@fortawesome/free-solid-svg-icons/faX";
-import ProfileDrawer from "./ProfileDrawer";
 import LoadingHeader from "./loadings/LoadingHeader"; // Create this component for loading state
 import { usePathname } from "next/navigation";
 import LoadingAvatar from "./loadings/LoadingAvatar";
 import LoadingFolderItem from "@/components/loadings/LoadingFolderItem";
+import ProfileDrawer from "./ProfileDrawer";
 
-const Header = () => {
+export default function Header({ initialSession, initialUserData }) {
+  const [session] = useState(initialSession);
+  const [userData] = useState(initialUserData);
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLeftProfileOpen, setIsLeftProfileOpen] = useState(false);
   const [isRightProfileOpen, setIsRightProfileOpen] = useState(false);
-  const { data: session, status } = useSession();
   const pathname = usePathname();
   const isTasksRoute = pathname === "/tasks";
   const isNotesRoute = pathname === "/notes";
@@ -65,10 +66,6 @@ const Header = () => {
     };
   }, []);
 
-  if (status === "loading") {
-    return <LoadingHeader />; // Show loading skeleton
-  }
-
   if (!session) {
     return null; // Don't render header if no session
   }
@@ -88,10 +85,10 @@ const Header = () => {
   const renderAvatar = () => (
     <div className="w-10 rounded-full overflow-hidden ring-4 ring-primary ring-offset-2 ring-offset-base-300">
       {isAvatarLoading && <LoadingAvatar />}
-      {session.user.avatar?.base64 ? (
+      {userData.avatar?.base64 ? (
         <Image
-          src={`data:${session.user.avatar.contentType};base64,${session.user.avatar.base64}`}
-          alt={session.user.name || "Profile"}
+          src={`data:${userData.avatar.contentType};base64,${userData.avatar.base64}`}
+          alt={userData.name || "Profile"}
           width={40}
           height={40}
           className={`rounded-full object-cover ${
@@ -361,17 +358,32 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Center section */}
+        {/* Center section - Updated with active states */}
         <div className="hidden lg:flex flex-none absolute left-1/2 transform -translate-x-1/2">
           <ul className="menu menu-horizontal px-1 gap-2">
             <li>
-              <Link href="/home">Home</Link>
+              <Link 
+                href="/home" 
+                className={pathname === "/home" ? "active bg-primary text-primary-content" : ""}
+              >
+                Home
+              </Link>
             </li>
             <li>
-              <Link href="/tasks">Tasks</Link>
+              <Link 
+                href="/tasks" 
+                className={pathname === "/tasks" ? "active bg-primary text-primary-content" : ""}
+              >
+                Tasks
+              </Link>
             </li>
             <li>
-              <Link href="/notes">Notes</Link>
+              <Link 
+                href="/notes" 
+                className={pathname === "/notes" ? "active bg-primary text-primary-content" : ""}
+              >
+                Notes
+              </Link>
             </li>
           </ul>
         </div>
@@ -417,7 +429,7 @@ const Header = () => {
         isOpen={isLeftProfileOpen}
         onClose={() => setIsLeftProfileOpen(false)}
         direction="right"
-        session={session}
+        userData={userData}
       />
 
       {/* Right Profile Drawer */}
@@ -425,10 +437,8 @@ const Header = () => {
         isOpen={isRightProfileOpen}
         onClose={() => setIsRightProfileOpen(false)}
         direction="right"
-        session={session}
+        userData={userData}
       />
     </div>
   );
-};
-
-export default Header;
+}

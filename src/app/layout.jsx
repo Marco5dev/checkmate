@@ -2,7 +2,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth";
 import AuthProvider from "@/utils/SessionsProvider";
-import Header from "@/components/Header";
+import HeaderWrapper from "@/components/HeaderWrapper";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -164,7 +164,7 @@ export default async function RootLayout({ children, params }) {
       <body className={poppins.className}>
         <AuthProvider session={session}>
           <SettingsProvider>
-            <Header />
+            <HeaderWrapper />
             {children}
             <Toaster position="bottom-center" />
           </SettingsProvider>

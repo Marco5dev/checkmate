@@ -56,7 +56,7 @@ export default function Main() {
               </button>
             </div>
           </div>
-          <div className="w-[500px] slide-in-right">
+          <div className="w-[550px] slide-in-right">
             <div className="hover-lift">
               <ImageGallery />
             </div>
@@ -91,39 +91,36 @@ export default function Main() {
         </div>
       </section>
 
-      {/* Themes Section */}
+      {/* Themes Section - Updated with animations */}
       <section className="py-16 bg-base-200">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="lg:w-1/2">
               <TextBlock>
-                <h2 className="text-4xl font-bold mb-6">Your Style, Your Way</h2>
+                <h2 className="text-4xl font-bold mb-6">
+                  Your Style, Your Way
+                </h2>
                 <p className="mb-6 text-lg">
-                  Make CheckMate truly yours with extensive customization options:
+                  Make CheckMate truly yours with extensive customization
+                  options:
                 </p>
               </TextBlock>
               <ul className="space-y-4">
-                <li className="flex items-center gap-3">
-                  <FontAwesomeIcon icon={faPalette} className="text-primary" />
-                  <span>Multiple color themes to choose from</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <FontAwesomeIcon icon={faMoon} className="text-primary" />
-                  <span>Light and dark mode support</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <FontAwesomeIcon icon={faUser} className="text-primary" />
-                  <span>Personalized workspace settings</span>
-                </li>
+                {[
+                  { icon: faPalette, text: "Multiple color themes to choose from" },
+                  { icon: faMoon, text: "Light and dark mode support" },
+                  { icon: faUser, text: "Personalized workspace settings" }
+                ].map((item, index) => (
+                  <AnimatedListItem key={index} icon={item.icon} text={item.text} delay={index * 200} />
+                ))}
               </ul>
             </div>
-            <div className="lg:w-1/2 hover-lift slide-in-right">
-              <Image
+            <div className="lg:w-1/2">
+              <AnimatedImage
                 src="/previews/theme-preview.png"
                 alt="Theme Customization"
                 width={600}
                 height={400}
-                className="rounded-lg shadow-xl"
               />
             </div>
           </div>
@@ -184,20 +181,22 @@ export default function Main() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - Updated with animations */}
       <section className="py-16 bg-primary text-primary-content">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">
-            Ready to Get More Organized?
-          </h2>
-          <p className="mb-8 max-w-2xl mx-auto">
-            Join thousands of users who are already managing their tasks more
-            effectively with CheckMate. Start your journey to better
-            productivity today.
-          </p>
-          <Link href="/login" className="btn btn-secondary btn-lg hover-scale">
-            Start Free
-          </Link>
+          <AnimatedCTAContent>
+            <h2 className="text-3xl font-bold mb-6">
+              Ready to Get More Organized?
+            </h2>
+            <p className="mb-8 max-w-2xl mx-auto">
+              Join thousands of users who are already managing their tasks more
+              effectively with CheckMate. Start your journey to better
+              productivity today.
+            </p>
+            <Link href="/login" className="btn btn-secondary btn-lg hover-scale">
+              Start Free
+            </Link>
+          </AnimatedCTAContent>
         </div>
       </section>
 
@@ -242,14 +241,6 @@ export default function Main() {
                   className="text-2xl hover:text-primary transition-all hover:scale-125"
                 >
                   <FontAwesomeIcon icon={faGithub} />
-                </a>
-                <a
-                  href="https://twitter.com/Marco5_dev"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-2xl hover:text-primary transition-all hover:scale-125"
-                >
-                  <FontAwesomeIcon icon={faTwitter} />
                 </a>
                 <a
                   href="https://linkedin.com/in/marco5dev"
@@ -383,6 +374,74 @@ function TextBlock({ children }) {
       className={`transition-opacity duration-700 ${
         inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function AnimatedListItem({ icon, text, delay = 0 }) {
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
+
+  return (
+    <li
+      ref={ref}
+      className={`flex items-center gap-3 transition-all duration-700 transform
+        ${inView 
+          ? "opacity-100 translate-x-0" 
+          : "opacity-0 -translate-x-10"
+        }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <FontAwesomeIcon icon={icon} className="text-primary" />
+      <span>{text}</span>
+    </li>
+  );
+}
+
+function AnimatedImage({ src, alt, width, height }) {
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 transform
+        ${inView 
+          ? "opacity-100 translate-x-0" 
+          : "opacity-0 translate-x-20"
+        }`}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        className="rounded-lg shadow-xl hover-lift"
+      />
+    </div>
+  );
+}
+
+function AnimatedCTAContent({ children }) {
+  const { ref, inView } = useInView({
+    threshold: 0.2,
+    triggerOnce: true,
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 transform
+        ${inView 
+          ? "opacity-100 translate-y-0 scale-100" 
+          : "opacity-0 translate-y-10 scale-95"
+        }`}
     >
       {children}
     </div>
