@@ -43,7 +43,7 @@ export default async function Profile() {
 
   return (
     <main className="login-bg bg-cover bg-no-repeat bg-fixed flex flex-col content-center text-center items-center pt-24 min-h-screen font-[family-name:var(--font-geist-sans)] bg-bg-img">
-      <div className="flex flex-col items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] lg:w-[95%] text-center">
+      <div className="flex flex-col items-start gap-4 p-10 bg-base-300 rounded-xl w-[95%] text-center">
         <h1 className="text-3xl font-bold mb-6 w-full">Profile Settings</h1>
         <ProfileEditor session={enrichedSession} />
       </div>

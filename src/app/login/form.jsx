@@ -21,8 +21,8 @@ export default function Form() {
   }, [session, router]);
 
   return (
-    <div className="login-bg bg-bg-img bg-cover bg-no-repeat bg-center flex justify-center items-start lg:items-center w-screen h-screen mt-10 lg:mt-0">
-      <div className="w-full max-w-md">
+    <div className="login-bg bg-bg-img bg-cover bg-no-repeat bg-center flex justify-center items-center w-screen h-screen mt-10 mt-0">
+      <div className="w-full max-w-md flex justify-center">
         <div className="login-container shadow-2xl w-[95%] lg:w-[450px]">
           <div className="flex flex-col items-center justify-center p-8">
             <h1 className="text-xl lg:text-2xl font-bold text-center mb-8 uppercase">
