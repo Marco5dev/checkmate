@@ -33,17 +33,17 @@ export default function Main() {
       {/* Hero Section */}
       <section className="hero min-h-screen relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-base-300 via-base-100 to-primary/20"></div>
-        <div className="hero-content relative z-10 flex-col gap-8 w-full">
+        <div className="hero-content relative z-10 flex-col gap-8 w-full px-4 md:px-8">
           <div className="max-w-xl slide-in-left text-center">
-            <h1 className="text-5xl font-bold animate-slideUp">
+            <h1 className="text-3xl lg:text-5xl font-bold animate-slideUp">
               Organize Your Life with CheckMate
             </h1>
-            <p className="py-6 animate-slideUp animation-delay-200">
+            <p className="py-4 lg:py-6 animate-slideUp animation-delay-200">
               A powerful task management application that helps you stay
               organized, focused, and productive. Built with modern technology
               and a user-first approach.
             </p>
-            <div className="flex gap-4 animate-slideUp animation-delay-300 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 animate-slideUp animation-delay-300 justify-center">
               <Link href="/login" className="btn btn-primary hover-scale">
                 Get Started
               </Link>
@@ -56,7 +56,7 @@ export default function Main() {
               </button>
             </div>
           </div>
-          <div className="w-[550px] slide-in-right">
+          <div className="w-full max-w-[550px] slide-in-right">
             <div className="hover-lift">
               <ImageGallery />
             </div>
