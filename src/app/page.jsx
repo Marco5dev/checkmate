@@ -224,7 +224,7 @@ export default function Main() {
               <h3 className="text-lg font-bold hover-scale inline-block">
                 Developer
               </h3>
-              <p>Marco Essam</p>
+              <p>Mark Maher Eweida</p>
               <a
                 href="https://marco5dev.me"
                 target="_blank"

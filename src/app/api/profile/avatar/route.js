@@ -22,15 +22,15 @@ export async function PUT(request) {
             filename,
             contentType,
             base64,
-            updatedAt: new Date()
-          }
-        }
+            updatedAt: new Date(),
+          },
+        },
       },
       { new: true }
     ).lean();
 
     return NextResponse.json({
-      avatar: updatedUser.avatar
+      avatar: updatedUser.avatar,
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
