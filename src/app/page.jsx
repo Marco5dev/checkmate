@@ -45,11 +45,11 @@ export default function Main() {
   };
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section className="hero min-h-screen relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-base-300 via-base-100 to-primary/20"></div>
-        <div className="hero-content relative z-10 flex-col gap-8 w-full px-4 md:px-8">
+        <div className="hero-content relative z-10 flex-col gap-8 w-full px-2 sm:px-4 md:px-8">
           <div className="max-w-xl slide-in-left text-center">
             <h1 className="text-3xl lg:text-5xl font-bold animate-slideUp">
               Organize Your Life with CheckMate
@@ -82,7 +82,7 @@ export default function Main() {
 
       {/* Features Section */}
       <section className="py-16 bg-base-100">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           <AnimatedTitle>Why Choose CheckMate?</AnimatedTitle>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
@@ -109,7 +109,7 @@ export default function Main() {
 
       {/* Themes Section - Updated with animations */}
       <section className="py-16 bg-base-200">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-2 sm:px-4">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="lg:w-1/2">
               <TextBlock>

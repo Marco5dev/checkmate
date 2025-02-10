@@ -4,7 +4,12 @@
 
 By Mark Maher Eweida (marco5dev)
 
-### Video Demo: [URL_HERE]
+### Video Demo: [Video Link](https://youtu.be/wKu0s_gWPyM)
+- **Project Title:** CheckMate
+- **Name:** Mark Maher Eweida
+- **Github & EDX username:** marco5dev
+- **city and country:** Port Said, Egypt
+- **Date:** 10/2/2025
 
 ## Project Description
 
